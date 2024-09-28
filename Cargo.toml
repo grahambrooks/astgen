@@ -1,0 +1,21 @@
+[package]
+name = "astgen"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[dependencies]
+regex = "1.10.6"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tree-sitter = "0.23.0"
+tree-sitter-language = "0.1.0"
+tree-sitter-rust = "0.23.0"
+tree-sitter-java = "0.23.2"
+tree-sitter-c-sharp = "0.23.0"
+tree-sitter-go = "0.23.1"
+tree-sitter-python = "0.23.0"
+tree-sitter-typescript = "0.23.0"
+tree-sitter-javascript = "0.23.0"
+uuid = { version = "1.10.0", features = ["v4"] }
+clap = { version = "4.3.18", features = ["derive"] }
