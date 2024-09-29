@@ -21,8 +21,7 @@ pub(crate) fn node_to_json(source_code: &str, node: Node) -> JsonNode {
         kind: node.kind().to_string(),
         start_byte: node.start_byte(),
         end_byte: node.end_byte(),
-        text: if text_value.is_empty() { None } else { Some(text_value) },
+        text: if children.is_empty() && !text_value.is_empty() { Some(text_value) } else { None },
         children: if children.is_empty() { None } else { Some(children) },
     }
 }
-

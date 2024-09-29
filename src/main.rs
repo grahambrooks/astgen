@@ -25,9 +25,14 @@ CLI for generating ASTs for
   * Typescript
   * TSX
   * JavaScript
+
+astgen is a fairly simple wrapper around https://tree-sitter.github.io/tree-sitter/ parsers.
+
 "#
 )]
 struct Args {
+    #[arg(long, help = "Truncate the JSON line output for each line. Useful for previewing the output when scanning a large number of files")]
+    truncate: Option<usize>,
     files: Vec<String>,
 }
 
@@ -45,24 +50,42 @@ fn main() {
     let tsx_language = tree_sitter_typescript::LANGUAGE_TSX.into();
     let javascript_language = tree_sitter_javascript::LANGUAGE.into();
 
-    encodings.add("^rs$", &rust_language)
-        .add("^java$", &java_language)
-        .add("^cs$", &csharp_language)
-        .add("^go$", &go_language)
-        .add("^py$", &python_language)
-        .add("^ts$", &typescript_language)
-        .add("^tsx$", &tsx_language)
-        .add("^js$", &javascript_language);
+    encodings.add("^rs$", &rust_language, "Rust")
+        .add("^java$", &java_language, "Java")
+        .add("^cs$", &csharp_language, "C#")
+        .add("^go$", &go_language, "Go")
+        .add("^py$", &python_language, "Python")
+        .add("^ts$", &typescript_language, "TypeScript")
+        .add("^tsx$", &tsx_language, "TSX")
+        .add("^js$", &javascript_language, "JavaScript");
     for arg in args.files {
         let start_time = std::time::Instant::now();
-        println!("Walking directory: {}", arg);
-        let (file_count, error_count) = walk_dir(&arg, &encodings);
+
+        if !fs::metadata(&arg).unwrap().is_dir() {
+            let encoding = encodings.match_file(&arg);
+            match encoding {
+                Some(lang) => {
+                    if parsing::parse_file(arg.clone().into(), lang, args.truncate) {
+                        eprintln!("Parsed file: {}", arg.clone());
+                    } else {
+                        eprintln!("Error parsing file: {}", arg.clone());
+                    }
+                }
+                None => {
+                    eprintln!("No language found for file: {}", arg);
+                }
+            }
+            continue;
+        }
+
+        eprintln!("Walking directory: {}", arg);
+        let (file_count, error_count) = walk_dir(&arg, &encodings, args.truncate);
         let duration = start_time.elapsed();
-        println!("Parsed {} files with {} errors in {:?}", file_count, error_count, duration);
+        eprintln!("Parsed {} files with {} errors in {:?}", file_count, error_count, duration);
     }
 }
 
-fn walk_dir(dir: &str, encodings: &encodings::Encodings) -> (usize, usize) {
+fn walk_dir(dir: &str, encodings: &encodings::Encodings, truncate: Option<usize>) -> (usize, usize) {
     let mut file_count = 0;
     let mut error_count = 0;
     let paths = fs::read_dir(dir).unwrap();
@@ -70,16 +93,16 @@ fn walk_dir(dir: &str, encodings: &encodings::Encodings) -> (usize, usize) {
         let path = path.unwrap().path();
         if path.is_dir() {
             if should_walk_dir(path.to_str().unwrap()) {
-                let (f, e) = walk_dir(path.to_str().unwrap(), encodings);
+                let (f, e) = walk_dir(path.to_str().unwrap(), encodings, truncate);
                 file_count += f;
                 error_count += e;
             }
         } else {
-            let language = encodings.match_file(path.to_str().unwrap());
+            let encoding = encodings.match_file(path.to_str().unwrap());
 
-            match language {
+            match encoding {
                 Some(lang) => {
-                    if parsing::parse_file(path, lang) {
+                    if parsing::parse_file(path, lang, truncate) {
                         file_count += 1;
                     } else {
                         error_count += 1;

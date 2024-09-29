@@ -12,15 +12,14 @@ impl<'a> Encodings<'a> {
         }
     }
 
-    pub fn add(&mut self, extension_pattern: &str, language: &'a Language) -> &mut Self {
-        self.encodings.push(Encoding::new(extension_pattern, language));
+    pub fn add(&mut self, extension_pattern: &str, language: &'a Language, name: &'a str) -> &mut Self {
+        self.encodings.push(Encoding::new(extension_pattern, language, name));
         self
     }
-
-    pub fn match_file(&self, file_path: &str) -> Option<&Language> {
+    pub fn match_file(&self, file_path: &str) -> Option<&Encoding> {
         for encoding in &self.encodings {
             if encoding.matches(file_path) {
-                return Some(&encoding.language);
+                return Some(&encoding);
             }
         }
         None
