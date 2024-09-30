@@ -3,6 +3,10 @@ name = "astgen"
 version = "0.1.0"
 edition = "2021"
 build = "build.rs"
+readme = "README.md"
+repository = "https://github.com/grahambrooks/astgen"
+homepage = "https://github.com/grahambrooks/astgen"
+license = "MIT"
 
 [dependencies]
 regex = "1.10.6"
