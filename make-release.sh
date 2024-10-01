@@ -20,7 +20,7 @@ done
 cargo bump $BUMP_TYPE
 NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
 git tag "$NEW_VERSION"
-sleep 1
+cargo test
 git add Cargo.toml
 git add Cargo.lock
 git commit -m "Release $NEW_VERSION"
