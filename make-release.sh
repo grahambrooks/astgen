@@ -18,11 +18,12 @@ while getopts "b:" opt; do
 done
 
 cargo bump $BUMP_TYPE
-NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
-git tag "$NEW_VERSION"
+cargo build
 cargo test
+NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
 git add Cargo.toml
 git add Cargo.lock
 git commit -m "Release $NEW_VERSION"
+git tag "$NEW_VERSION"
 git push
 git push --tags
