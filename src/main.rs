@@ -25,6 +25,7 @@ CLI for generating ASTs for
   * Typescript
   * TSX
   * JavaScript
+  * Ruby
 
 astgen is a fairly simple wrapper around https://tree-sitter.github.io/tree-sitter/ parsers.
 
@@ -49,6 +50,7 @@ fn main() {
     let typescript_language = tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into();
     let tsx_language = tree_sitter_typescript::LANGUAGE_TSX.into();
     let javascript_language = tree_sitter_javascript::LANGUAGE.into();
+    let ruby_language = tree_sitter_ruby::LANGUAGE.into();
 
     encodings.add("^rs$", &rust_language, "Rust")
         .add("^java$", &java_language, "Java")
@@ -57,7 +59,8 @@ fn main() {
         .add("^py$", &python_language, "Python")
         .add("^ts$", &typescript_language, "TypeScript")
         .add("^tsx$", &tsx_language, "TSX")
-        .add("^js$", &javascript_language, "JavaScript");
+        .add("^js$", &javascript_language, "JavaScript")
+        .add("^rb$", &ruby_language, "Ruby");
     for arg in args.files {
         let start_time = std::time::Instant::now();
 

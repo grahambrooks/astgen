@@ -66,4 +66,11 @@ mod tests {
         let encoding = Encoding::new(r"(?i)rs$", &rust_language, "Rust");
         assert!(encoding.matches("src/main.RS"));
     }
+
+    #[test]
+    fn matches_ruby_extension() {
+        let ruby_language = tree_sitter_ruby::LANGUAGE.into();
+        let encoding = Encoding::new(r"rb$", &ruby_language, "Ruby");
+        assert!(encoding.matches("src/main.rb"));
+    }
 }
