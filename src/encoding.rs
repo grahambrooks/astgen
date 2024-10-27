@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     fn matches_ruby_extension() {
-        let ruby_language = tree_sitter_ruby::LANGUAGE.into();
+        let ruby_language =  tree_sitter_ruby::LANGUAGE.into();
         let encoding = Encoding::new(r"rb$", &ruby_language, "Ruby");
         assert!(encoding.matches("src/main.rb"));
     }
