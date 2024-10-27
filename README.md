@@ -8,7 +8,7 @@ It uses pre-built https://tree-sitter.github.io/tree-sitter/ grammars to parse t
 
 ### Project build and release status
 
-![ci](https://github.com/grahambrooks/astgen/actions/workflows/ci.yaml/badge.svg) ![release](https://github.com/grahambrooks/astgen/actions/workflows/release.yaml/badge.svg)
+![ci](https://github.com/grahambrooks/astgen/actions/workflows/ci.yaml/badge.svg) ![release](https://github.com/grahambrooks/astgen/actions/workflows/release.yml/badge.svg)
 
 ## Installing
 
