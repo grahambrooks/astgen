@@ -27,7 +27,7 @@ CLI for generating ASTs for
   * JavaScript
   * Ruby
 
-astgen is a fairly simple wrapper around https://tree-sitter.github.io/tree-sitter/ parsers.
+astgen is a simple wrapper around https://tree-sitter.github.io/tree-sitter/ parsers.
 
 "#
 )]
