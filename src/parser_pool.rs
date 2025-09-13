@@ -21,7 +21,7 @@ impl ParserPool {
         let mut entry = self
             .parsers
             .entry(language_name.to_string())
-            .or_insert_with(Vec::new);
+            .or_default();
 
         if let Some(mut parser) = entry.pop() {
             parser.set_language(language)?;

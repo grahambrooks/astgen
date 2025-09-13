@@ -81,19 +81,19 @@ fn main() -> Result<()> {
     let mut total_errors = 0;
 
     for file_arg in &args.files {
-        match fs::metadata(&file_arg) {
+        match fs::metadata(file_arg) {
             Ok(metadata) => {
                 if metadata.is_dir() {
                     if args.verbose && !args.quiet {
                         log::info!("Processing directory: {}", file_arg.display());
                     }
                     let (files, errors) =
-                        walk::process_directory(&file_arg, &encodings, &args, &parser_pool)?;
+                        walk::process_directory(file_arg, &encodings, &args, &parser_pool)?;
                     total_files += files;
                     total_errors += errors;
                 } else {
                     let result =
-                        walk::process_single_file(&file_arg, &encodings, &args, &parser_pool)?;
+                        walk::process_single_file(file_arg, &encodings, &args, &parser_pool)?;
                     if result {
                         total_files += 1;
                     } else {

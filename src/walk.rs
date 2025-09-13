@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 pub fn process_single_file(
-    file_path: &PathBuf,
+    file_path: &std::path::Path,
     encodings: &encodings::Encodings,
     args: &Args,
     _parser_pool: &Arc<parser_pool::ParserPool>,
@@ -37,7 +37,7 @@ pub fn process_single_file(
             let max_size_bytes = args.max_file_size * 1_000_000; // Convert MB to bytes
 
             match parsing::parse_file_safe_with_size_limit(
-                file_path.clone(),
+                file_path.to_path_buf(),
                 lang,
                 args.truncate,
                 max_size_bytes,
@@ -81,7 +81,7 @@ pub fn process_single_file(
     }
 }
 
-fn should_process_file(file_path: &PathBuf, args: &Args) -> bool {
+fn should_process_file(file_path: &std::path::Path, args: &Args) -> bool {
     let path_str = file_path.to_string_lossy();
 
     // Check exclude patterns first
@@ -131,7 +131,7 @@ fn write_output(content: &str, args: &Args) -> Result<()> {
 }
 
 pub fn process_directory(
-    dir_path: &PathBuf,
+    dir_path: &std::path::Path,
     encodings: &encodings::Encodings,
     args: &Args,
     _parser_pool: &Arc<parser_pool::ParserPool>,
@@ -144,7 +144,7 @@ pub fn process_directory(
 
     // Add exclude patterns to walker
     for exclude_pattern in &args.exclude {
-        walker_builder.add_ignore(&format!("**/{}", exclude_pattern));
+        walker_builder.add_ignore(format!("**/{}", exclude_pattern));
     }
 
     let walker = walker_builder.build();
@@ -222,7 +222,7 @@ pub fn process_directory(
 
     let success_count = results
         .iter()
-        .filter(|r| r.as_ref().map_or(false, |&b| b))
+        .filter(|r| r.as_ref().is_ok_and(|&b| b))
         .count();
     let error_count = results.len() - success_count;
 
@@ -257,29 +257,27 @@ pub fn walk_dir(
     let mut file_count = 0;
     let mut error_count = 0;
     if let Ok(paths) = fs::read_dir(dir) {
-        for path in paths {
-            if let Ok(path) = path {
-                let path = path.path();
-                if path.is_dir() {
-                    if should_walk_dir(path.to_str().unwrap_or_default()) {
-                        let (f, e) =
-                            walk_dir(path.to_str().unwrap_or_default(), encodings, truncate);
-                        file_count += f;
-                        error_count += e;
+        for path in paths.flatten() {
+            let path = path.path();
+            if path.is_dir() {
+                if should_walk_dir(path.to_str().unwrap_or_default()) {
+                    let (f, e) =
+                        walk_dir(path.to_str().unwrap_or_default(), encodings, truncate);
+                    file_count += f;
+                    error_count += e;
+                }
+            } else {
+                let encoding = encodings.match_file(&path.to_string_lossy());
+                match encoding {
+                    Some(lang) => {
+                        if crate::parsing::parse_file(path, lang, truncate) {
+                            file_count += 1;
+                        } else {
+                            error_count += 1;
+                        }
                     }
-                } else {
-                    let encoding = encodings.match_file(&path.to_string_lossy());
-                    match encoding {
-                        Some(lang) => {
-                            if crate::parsing::parse_file(path, lang, truncate) {
-                                file_count += 1;
-                            } else {
-                                error_count += 1;
-                            }
-                        }
-                        None => {
-                            continue;
-                        }
+                    None => {
+                        continue;
                     }
                 }
             }
