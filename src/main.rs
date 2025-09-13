@@ -1,18 +1,21 @@
+mod cli_types;
+mod config;
 mod encoding;
 mod encodings;
-mod parsing;
-mod json;
 mod error;
+mod json;
 mod parser_pool;
-mod config;
+mod parsing;
+mod versions; // Add new module
 mod walk;
-mod cli_types;
 
 use clap::Parser;
 use cli_types::Args;
 use error::{AstgenError, Result};
 use std::fs;
 use std::sync::Arc;
+// Import the version constants
+use versions::*;
 
 static VERSION: &str = concat!(
     env!("CARGO_PKG_VERSION"),
@@ -45,14 +48,17 @@ fn main() -> Result<()> {
     };
 
     // Set up thread pool
-    let num_threads = args.parallel
+    let num_threads = args
+        .parallel
         .or(config.performance.as_ref().and_then(|p| p.max_threads))
         .unwrap_or_else(num_cpus::get);
-        
+
     rayon::ThreadPoolBuilder::new()
         .num_threads(num_threads)
         .build_global()
-        .map_err(|e| AstgenError::InvalidInput(format!("Failed to initialize thread pool: {}", e)))?;
+        .map_err(|e| {
+            AstgenError::InvalidInput(format!("Failed to initialize thread pool: {}", e))
+        })?;
 
     if args.verbose {
         log::info!("Using {} threads for parallel processing", num_threads);
@@ -64,7 +70,9 @@ fn main() -> Result<()> {
 
     // Process files
     if args.files.is_empty() {
-        return Err(AstgenError::InvalidInput("No input files specified".to_string()));
+        return Err(AstgenError::InvalidInput(
+            "No input files specified".to_string(),
+        ));
     }
 
     let total_start_time = std::time::Instant::now();
@@ -78,16 +86,13 @@ fn main() -> Result<()> {
                     if args.verbose && !args.quiet {
                         log::info!("Processing directory: {}", file_arg.display());
                     }
-                    let (files, errors) = walk::process_directory(
-                        &file_arg,
-                        &encodings, 
-                        &args,
-                        &parser_pool
-                    )?;
+                    let (files, errors) =
+                        walk::process_directory(&file_arg, &encodings, &args, &parser_pool)?;
                     total_files += files;
                     total_errors += errors;
                 } else {
-                    let result = walk::process_single_file(&file_arg, &encodings, &args, &parser_pool)?;
+                    let result =
+                        walk::process_single_file(&file_arg, &encodings, &args, &parser_pool)?;
                     if result {
                         total_files += 1;
                     } else {
@@ -105,9 +110,9 @@ fn main() -> Result<()> {
     let duration = total_start_time.elapsed();
     if args.verbose && !args.quiet {
         log::info!(
-            "Processed {} files with {} errors in {:?}", 
-            total_files, 
-            total_errors, 
+            "Processed {} files with {} errors in {:?}",
+            total_files,
+            total_errors,
             duration
         );
     }
@@ -121,7 +126,7 @@ fn main() -> Result<()> {
 
 fn create_encodings() -> encodings::Encodings<'static> {
     use std::sync::OnceLock;
-    
+
     static RUST_LANGUAGE: OnceLock<tree_sitter::Language> = OnceLock::new();
     static JAVA_LANGUAGE: OnceLock<tree_sitter::Language> = OnceLock::new();
     static CSHARP_LANGUAGE: OnceLock<tree_sitter::Language> = OnceLock::new();
@@ -137,9 +142,11 @@ fn create_encodings() -> encodings::Encodings<'static> {
     let csharp_lang = CSHARP_LANGUAGE.get_or_init(|| tree_sitter_c_sharp::LANGUAGE.into());
     let go_lang = GO_LANGUAGE.get_or_init(|| tree_sitter_go::LANGUAGE.into());
     let python_lang = PYTHON_LANGUAGE.get_or_init(|| tree_sitter_python::LANGUAGE.into());
-    let typescript_lang = TYPESCRIPT_LANGUAGE.get_or_init(|| tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into());
+    let typescript_lang =
+        TYPESCRIPT_LANGUAGE.get_or_init(|| tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into());
     let tsx_lang = TSX_LANGUAGE.get_or_init(|| tree_sitter_typescript::LANGUAGE_TSX.into());
-    let javascript_lang = JAVASCRIPT_LANGUAGE.get_or_init(|| tree_sitter_javascript::LANGUAGE.into());
+    let javascript_lang =
+        JAVASCRIPT_LANGUAGE.get_or_init(|| tree_sitter_javascript::LANGUAGE.into());
     let ruby_lang = RUBY_LANGUAGE.get_or_init(|| tree_sitter_ruby::LANGUAGE.into());
 
     let mut encodings = encodings::Encodings::new();
@@ -153,7 +160,7 @@ fn create_encodings() -> encodings::Encodings<'static> {
         .add("tsx$", tsx_lang, "TSX")
         .add("js$", javascript_lang, "JavaScript")
         .add("rb$", ruby_lang, "Ruby");
-    
+
     encodings
 }
 
@@ -162,15 +169,15 @@ fn list_supported_languages() {
     println!("┌─────────────┬─────────────────┬─────────────────────────┐");
     println!("│ Language    │ Extensions      │ Tree-sitter Version     │");
     println!("├─────────────┼─────────────────┼─────────────────────────┤");
-    println!("│ Rust        │ .rs             │ {}          │", "0.23.2");
-    println!("│ Java        │ .java           │ {}          │", "0.23.5");
-    println!("│ C#          │ .cs             │ {}          │", "0.23.1");
-    println!("│ Go          │ .go             │ {}          │", "0.23.4");
-    println!("│ Python      │ .py             │ {}          │", "0.23.5");
-    println!("│ TypeScript  │ .ts             │ {}          │", "0.23.2");
-    println!("│ TSX         │ .tsx            │ {}          │", "0.23.2");
-    println!("│ JavaScript  │ .js             │ {}          │", "0.23.1");
-    println!("│ Ruby        │ .rb             │ {}          │", "0.23.1");
+    println!("│ Rust        │ .rs             │ {:<23} │", TREE_SITTER_RUST_VERSION);
+    println!("│ Java        │ .java           │ {:<23} │", TREE_SITTER_JAVA_VERSION);
+    println!("│ C#          │ .cs             │ {:<23} │", TREE_SITTER_C_SHARP_VERSION);
+    println!("│ Go          │ .go             │ {:<23} │", TREE_SITTER_GO_VERSION);
+    println!("│ Python      │ .py             │ {:<23} │", TREE_SITTER_PYTHON_VERSION);
+    println!("│ TypeScript  │ .ts             │ {:<23} │", TREE_SITTER_TYPESCRIPT_VERSION);
+    println!("│ TSX         │ .tsx            │ {:<23} │", TREE_SITTER_TYPESCRIPT_VERSION);
+    println!("│ JavaScript  │ .js             │ {:<23} │", TREE_SITTER_JAVASCRIPT_VERSION);
+    println!("│ Ruby        │ .rb             │ {:<23} │", TREE_SITTER_RUBY_VERSION);
     println!("└─────────────┴─────────────────┴─────────────────────────┘");
 }
 
