@@ -170,24 +170,51 @@ fn list_supported_languages() {
     println!("┌─────────────┬─────────────────┬─────────────────────────┐");
     println!("│ Language    │ Extensions      │ Tree-sitter Version     │");
     println!("├─────────────┼─────────────────┼─────────────────────────┤");
-    println!("│ Rust        │ .rs             │ {:<23} │", TREE_SITTER_RUST_VERSION);
-    println!("│ Java        │ .java           │ {:<23} │", TREE_SITTER_JAVA_VERSION);
-    println!("│ C#          │ .cs             │ {:<23} │", TREE_SITTER_C_SHARP_VERSION);
-    println!("│ Go          │ .go             │ {:<23} │", TREE_SITTER_GO_VERSION);
-    println!("│ Python      │ .py             │ {:<23} │", TREE_SITTER_PYTHON_VERSION);
-    println!("│ TypeScript  │ .ts             │ {:<23} │", TREE_SITTER_TYPESCRIPT_VERSION);
-    println!("│ TSX         │ .tsx            │ {:<23} │", TREE_SITTER_TYPESCRIPT_VERSION);
-    println!("│ JavaScript  │ .js             │ {:<23} │", TREE_SITTER_JAVASCRIPT_VERSION);
-    println!("│ Ruby        │ .rb             │ {:<23} │", TREE_SITTER_RUBY_VERSION);
+    println!(
+        "│ Rust        │ .rs             │ {:<23} │",
+        TREE_SITTER_RUST_VERSION
+    );
+    println!(
+        "│ Java        │ .java           │ {:<23} │",
+        TREE_SITTER_JAVA_VERSION
+    );
+    println!(
+        "│ C#          │ .cs             │ {:<23} │",
+        TREE_SITTER_C_SHARP_VERSION
+    );
+    println!(
+        "│ Go          │ .go             │ {:<23} │",
+        TREE_SITTER_GO_VERSION
+    );
+    println!(
+        "│ Python      │ .py             │ {:<23} │",
+        TREE_SITTER_PYTHON_VERSION
+    );
+    println!(
+        "│ TypeScript  │ .ts             │ {:<23} │",
+        TREE_SITTER_TYPESCRIPT_VERSION
+    );
+    println!(
+        "│ TSX         │ .tsx            │ {:<23} │",
+        TREE_SITTER_TYPESCRIPT_VERSION
+    );
+    println!(
+        "│ JavaScript  │ .js             │ {:<23} │",
+        TREE_SITTER_JAVASCRIPT_VERSION
+    );
+    println!(
+        "│ Ruby        │ .rb             │ {:<23} │",
+        TREE_SITTER_RUBY_VERSION
+    );
     println!("└─────────────┴─────────────────┴─────────────────────────┘");
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::walk::walk_dir;
     use std::fs;
     use tempfile::TempDir;
-    use crate::walk::walk_dir;
 
     #[test]
     fn test_should_walk_dir_allows_normal_dirs() {

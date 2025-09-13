@@ -1,6 +1,6 @@
+use crate::error::Result;
 use dashmap::DashMap;
 use tree_sitter::{Language, Parser};
-use crate::error::Result;
 
 #[allow(dead_code)]
 pub struct ParserPool {
@@ -18,8 +18,11 @@ impl ParserPool {
 
     #[allow(dead_code)]
     pub fn get_parser(&self, language_name: &str, language: &Language) -> Result<Parser> {
-        let mut entry = self.parsers.entry(language_name.to_string()).or_insert_with(Vec::new);
-        
+        let mut entry = self
+            .parsers
+            .entry(language_name.to_string())
+            .or_insert_with(Vec::new);
+
         if let Some(mut parser) = entry.pop() {
             parser.set_language(language)?;
             Ok(parser)

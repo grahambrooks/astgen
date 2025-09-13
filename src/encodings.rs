@@ -27,6 +27,17 @@ impl<'a> Encodings<'a> {
             .iter()
             .find(|encoding| encoding.matches(file_path))
     }
+
+    #[allow(dead_code)]
+    pub fn match_file_or_error(&self, file_path: &str) -> crate::error::Result<&Encoding<'_>> {
+        self.match_file(file_path).ok_or_else(|| {
+            let ext = std::path::Path::new(file_path)
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("unknown");
+            crate::error::AstgenError::LanguageNotSupported(ext.to_string())
+        })
+    }
 }
 
 #[cfg(test)]

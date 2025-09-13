@@ -166,12 +166,12 @@ fn test_truncate_option() {
 fn test_parse_directory() {
     let temp_dir = TempDir::new().unwrap();
     let temp_path = temp_dir.path();
-    fs::write(temp_path.join("test1.rs"), "fn main() {}" ).unwrap();
+    fs::write(temp_path.join("test1.rs"), "fn main() {}").unwrap();
     fs::write(temp_path.join("test2.js"), "console.log('hello');").unwrap();
     fs::write(temp_path.join("readme.txt"), "This is a readme").unwrap();
     let sub_dir = temp_path.join("src");
     fs::create_dir(&sub_dir).unwrap();
-    fs::write(sub_dir.join("lib.rs"), "pub fn lib() {}" ).unwrap();
+    fs::write(sub_dir.join("lib.rs"), "pub fn lib() {}").unwrap();
     let output = run_astgen(&[temp_path.to_str().unwrap()]);
     let stdout = String::from_utf8(output.stdout).unwrap();
     let json_lines: Vec<&str> = stdout.trim().split('\n').collect();
@@ -185,18 +185,21 @@ fn test_parse_directory() {
 fn test_parse_directory_ignores_target() {
     let temp_dir = TempDir::new().unwrap();
     let temp_path = temp_dir.path();
-    fs::write(temp_path.join("main.rs"), "fn main() {}" ).unwrap();
+    fs::write(temp_path.join("main.rs"), "fn main() {}").unwrap();
     let target_dir = temp_path.join("target");
     fs::create_dir(&target_dir).unwrap();
-    fs::write(target_dir.join("ignored.rs"), "fn ignored() {}" ).unwrap();
+    fs::write(target_dir.join("ignored.rs"), "fn ignored() {}").unwrap();
     let output = run_astgen(&[temp_path.to_str().unwrap()]);
     let stdout = String::from_utf8(output.stdout).unwrap();
     let json_lines: Vec<&str> = stdout.trim().split('\n').collect();
     // Only count .rs files not in target/
-    let rs_files: Vec<_> = json_lines.iter().filter(|line| {
-        let json: Value = serde_json::from_str(line).unwrap();
-        json["filename"].as_str().unwrap().ends_with("main.rs")
-    }).collect();
+    let rs_files: Vec<_> = json_lines
+        .iter()
+        .filter(|line| {
+            let json: Value = serde_json::from_str(line).unwrap();
+            json["filename"].as_str().unwrap().ends_with("main.rs")
+        })
+        .collect();
     assert_eq!(rs_files.len(), 1);
 }
 

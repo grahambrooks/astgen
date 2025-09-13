@@ -1,6 +1,6 @@
 use crate::encoding::Encoding;
-use crate::json::JsonNode;
 use crate::error::{AstgenError, Result};
+use crate::json::JsonNode;
 use serde_json::json;
 use std::fs;
 use std::path::PathBuf;
@@ -20,20 +20,24 @@ pub fn parse_file(path: PathBuf, encoding: &Encoding, truncate: Option<usize>) -
     }
 }
 
-pub fn parse_file_safe(path: PathBuf, encoding: &Encoding, truncate: Option<usize>) -> Result<String> {
+pub fn parse_file_safe(
+    path: PathBuf,
+    encoding: &Encoding,
+    truncate: Option<usize>,
+) -> Result<String> {
     parse_file_safe_with_size_limit(path, encoding, truncate, 10_000_000)
 }
 
 pub fn parse_file_safe_with_size_limit(
-    path: PathBuf, 
-    encoding: &Encoding, 
+    path: PathBuf,
+    encoding: &Encoding,
     truncate: Option<usize>,
-    max_size_bytes: usize
+    max_size_bytes: usize,
 ) -> Result<String> {
     // Check file size before reading
     let metadata = fs::metadata(&path)?;
     let file_size = metadata.len() as usize;
-    
+
     if file_size > max_size_bytes {
         return Err(AstgenError::FileTooLarge {
             path: path.to_string_lossy().to_string(),
@@ -41,27 +45,27 @@ pub fn parse_file_safe_with_size_limit(
             limit: max_size_bytes,
         });
     }
-    
+
     let content = fs::read_to_string(&path).map_err(|e| {
         if e.kind() == std::io::ErrorKind::InvalidData {
             AstgenError::InvalidInput(format!(
-                "File contains invalid UTF-8: {}\nTry converting the file to UTF-8 encoding first.", 
+                "File contains invalid UTF-8: {}\nTry converting the file to UTF-8 encoding first.",
                 path.display()
             ))
         } else {
             AstgenError::IoError(e)
         }
     })?;
-    
+
     let json_tree = build_parse_tree_safe(&content, encoding.language)?;
-    
+
     let wrapped_json = json!({
         "version": "astgen-0.1",
         "filename": path.to_string_lossy(),
         "language": encoding.name,
         "ast": json_tree
     });
-    
+
     let json_output = match truncate {
         Some(len) => {
             let full_output = serde_json::to_string(&wrapped_json)?;
@@ -78,42 +82,44 @@ pub fn parse_file_safe_with_size_limit(
         }
         None => serde_json::to_string(&wrapped_json)?,
     };
-    
+
     Ok(json_output)
 }
 
 #[allow(dead_code)]
 pub fn parse_file_with_parser(
-    path: PathBuf, 
-    encoding: &Encoding, 
-    parser: &mut Parser, 
-    truncate: Option<usize>
+    path: PathBuf,
+    encoding: &Encoding,
+    parser: &mut Parser,
+    truncate: Option<usize>,
 ) -> Result<String> {
     let content = fs::read_to_string(&path)?;
-    
+
     // Check file size limit
     let max_size = 10_000_000; // 10MB in bytes
     if content.len() > max_size {
-        return Err(AstgenError::InvalidInput(
-            format!("File too large: {} bytes", content.len())
-        ));
+        return Err(AstgenError::InvalidInput(format!(
+            "File too large: {} bytes",
+            content.len()
+        )));
     }
-    
+
     parser.set_language(encoding.language)?;
-    
-    let tree = parser.parse(&content, None)
+
+    let tree = parser
+        .parse(&content, None)
         .ok_or_else(|| AstgenError::ParseError("Failed to parse content".to_string()))?;
-    
+
     let root_node = tree.root_node();
     let json_tree = crate::json::node_to_json(&content, root_node);
-    
+
     let wrapped_json = json!({
         "version": "astgen-0.1",
         "filename": path.to_string_lossy(),
         "language": encoding.name,
         "ast": json_tree
     });
-    
+
     let json_output = match truncate {
         Some(len) => {
             let full_output = serde_json::to_string(&wrapped_json)?;
@@ -125,17 +131,18 @@ pub fn parse_file_with_parser(
         }
         None => serde_json::to_string(&wrapped_json)?,
     };
-    
+
     Ok(json_output)
 }
 
 fn build_parse_tree_safe(content: &str, lang: &Language) -> Result<JsonNode> {
     let mut parser = Parser::new();
     parser.set_language(lang)?;
-    
-    let tree = parser.parse(content, None)
+
+    let tree = parser
+        .parse(content, None)
         .ok_or_else(|| AstgenError::ParseError("Failed to parse content".to_string()))?;
-    
+
     let root_node = tree.root_node();
     Ok(crate::json::node_to_json(content, root_node))
 }

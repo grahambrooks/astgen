@@ -4,11 +4,13 @@ use std::io::{self, Write};
 use crate::cli_types::{Args, OutputFormat};
 use crate::error::Result;
 
+#[allow(dead_code)]
 pub struct OutputWriter {
     writer: Box<dyn Write + Send>,
 }
 
 impl OutputWriter {
+    #[allow(dead_code)]
     pub fn new(args: &Args) -> Result<Self> {
         let writer: Box<dyn Write + Send> = match &args.output {
             Some(path) => {
@@ -21,41 +23,42 @@ impl OutputWriter {
             }
             None => Box::new(io::stdout()),
         };
-        
+
         Ok(OutputWriter { writer })
     }
-    
+
+    #[allow(dead_code)]
     pub fn write_result(&mut self, content: &str) -> Result<()> {
         writeln!(self.writer, "{}", content)?;
         Ok(())
     }
-    
+
+    #[allow(dead_code)]
     pub fn flush(&mut self) -> Result<()> {
         self.writer.flush()?;
         Ok(())
     }
 }
 
+#[allow(dead_code)]
 pub fn format_summary(success_count: usize, error_count: usize, format: &OutputFormat) -> String {
     match format {
-        OutputFormat::Json => {
-            serde_json::json!({
-                "summary": {
-                    "files_processed": success_count,
-                    "errors": error_count,
-                    "total": success_count + error_count
-                }
-            }).to_string()
-        }
-        OutputFormat::PrettyJson => {
-            serde_json::to_string_pretty(&serde_json::json!({
-                "summary": {
-                    "files_processed": success_count,
-                    "errors": error_count,
-                    "total": success_count + error_count
-                }
-            })).unwrap_or_default()
-        }
+        OutputFormat::Json => serde_json::json!({
+            "summary": {
+                "files_processed": success_count,
+                "errors": error_count,
+                "total": success_count + error_count
+            }
+        })
+        .to_string(),
+        OutputFormat::PrettyJson => serde_json::to_string_pretty(&serde_json::json!({
+            "summary": {
+                "files_processed": success_count,
+                "errors": error_count,
+                "total": success_count + error_count
+            }
+        }))
+        .unwrap_or_default(),
         OutputFormat::Yaml => {
             format!(
                 "summary:\n  files_processed: {}\n  errors: {}\n  total: {}",
@@ -109,7 +112,7 @@ mod tests {
             output: None,
             progress: false,
         };
-        
+
         let writer = OutputWriter::new(&args);
         assert!(writer.is_ok());
     }
@@ -135,7 +138,7 @@ mod tests {
             output: Some(temp_file.path().to_path_buf()),
             progress: false,
         };
-        
+
         let writer = OutputWriter::new(&args);
         assert!(writer.is_ok());
     }

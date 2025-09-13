@@ -9,7 +9,11 @@ pub enum AstgenError {
     TreeSitterError(tree_sitter::LanguageError),
     SerializationError(String),
     ConfigError(String),
-    FileTooLarge { path: String, size: usize, limit: usize },
+    FileTooLarge {
+        path: String,
+        size: usize,
+        limit: usize,
+    },
     UnsupportedFileType(String),
 }
 

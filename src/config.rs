@@ -1,6 +1,6 @@
+use crate::error::{AstgenError, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use crate::error::{AstgenError, Result};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Config {
@@ -44,8 +44,9 @@ pub struct PerformanceConfig {
 
 impl Config {
     pub fn load(path: &PathBuf) -> Result<Self> {
-        let content = std::fs::read_to_string(path)
-            .map_err(|e| AstgenError::ConfigError(format!("Cannot read config file {}: {}", path.display(), e)))?;
+        let content = std::fs::read_to_string(path).map_err(|e| {
+            AstgenError::ConfigError(format!("Cannot read config file {}: {}", path.display(), e))
+        })?;
         let config: Config = toml::from_str(&content)
             .map_err(|e| AstgenError::ConfigError(format!("Invalid config file {}: {}\n\nCheck the TOML syntax and ensure all required fields are present.", path.display(), e)))?;
         Ok(config)

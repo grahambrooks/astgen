@@ -1,14 +1,14 @@
-use std::fs;
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::io::Write;
-use rayon::prelude::*;
-use indicatif::{ProgressBar, ProgressStyle};
+use crate::cli_types::{format_output, Args};
 use crate::encodings;
+use crate::error::{AstgenError, Result};
 use crate::parser_pool;
 use crate::parsing;
-use crate::cli_types::{Args, format_output};
-use crate::error::Result;
+use indicatif::{ProgressBar, ProgressStyle};
+use rayon::prelude::*;
+use std::fs;
+use std::io::Write;
+use std::path::PathBuf;
+use std::sync::Arc;
 
 pub fn process_single_file(
     file_path: &PathBuf,
@@ -20,10 +20,10 @@ pub fn process_single_file(
     if !should_process_file(file_path, args) {
         return Ok(false);
     }
-    
+
     let file_str = file_path.to_string_lossy();
     let encoding = encodings.match_file(&file_str);
-    
+
     match encoding {
         Some(lang) => {
             if args.dry_run {
@@ -32,20 +32,20 @@ pub fn process_single_file(
                 }
                 return Ok(true);
             }
-            
+
             // Calculate max file size in bytes
             let max_size_bytes = args.max_file_size * 1_000_000; // Convert MB to bytes
-            
+
             match parsing::parse_file_safe_with_size_limit(
-                file_path.clone(), 
-                lang, 
+                file_path.clone(),
+                lang,
                 args.truncate,
-                max_size_bytes
+                max_size_bytes,
             ) {
                 Ok(output) => {
                     let formatted_output = format_output(&output, &args.format)?;
                     write_output(&formatted_output, args)?;
-                    
+
                     if args.verbose && !args.quiet {
                         log::info!("Parsed file: {}", file_path.display());
                     }
@@ -61,10 +61,20 @@ pub fn process_single_file(
         }
         None => {
             if args.verbose && !args.quiet {
-                let ext = file_path.extension()
+                let ext = file_path
+                    .extension()
                     .and_then(|e| e.to_str())
                     .unwrap_or("unknown");
-                log::warn!("Unsupported file type .{} for file: {}", ext, file_path.display());
+                if ext != "unknown" {
+                    return Err(AstgenError::UnsupportedFileType(
+                        file_path.to_string_lossy().to_string(),
+                    ));
+                }
+                log::warn!(
+                    "Unsupported file type .{} for file: {}",
+                    ext,
+                    file_path.display()
+                );
             }
             Ok(false)
         }
@@ -73,19 +83,22 @@ pub fn process_single_file(
 
 fn should_process_file(file_path: &PathBuf, args: &Args) -> bool {
     let path_str = file_path.to_string_lossy();
-    
+
     // Check exclude patterns first
     for exclude_pattern in &args.exclude {
         if glob_match(exclude_pattern, &path_str) {
             return false;
         }
     }
-    
+
     // If include patterns are specified, file must match at least one
     if !args.include.is_empty() {
-        return args.include.iter().any(|pattern| glob_match(pattern, &path_str));
+        return args
+            .include
+            .iter()
+            .any(|pattern| glob_match(pattern, &path_str));
     }
-    
+
     true
 }
 
@@ -128,12 +141,12 @@ pub fn process_directory(
         .add_custom_ignore_filename(".astgenignore")
         .follow_links(args.follow_links)
         .max_depth(Some(args.max_depth));
-    
+
     // Add exclude patterns to walker
     for exclude_pattern in &args.exclude {
         walker_builder.add_ignore(&format!("**/{}", exclude_pattern));
     }
-    
+
     let walker = walker_builder.build();
     let files: Vec<PathBuf> = walker
         .filter_map(|entry| {
@@ -151,18 +164,21 @@ pub fn process_directory(
             }
         })
         .collect();
-    
+
     if files.is_empty() {
         if !args.quiet {
-            log::warn!("No matching files found in directory: {}", dir_path.display());
+            log::warn!(
+                "No matching files found in directory: {}",
+                dir_path.display()
+            );
         }
         return Ok((0, 0));
     }
-    
+
     if args.verbose && !args.quiet {
         log::info!("Found {} files to process", files.len());
     }
-    
+
     let show_progress = args.progress || (!args.quiet && files.len() > 10);
     let progress_bar = if show_progress {
         let pb = ProgressBar::new(files.len() as u64);
@@ -177,32 +193,47 @@ pub fn process_directory(
     } else {
         None
     };
-    
+
     let results: Vec<Result<bool>> = files
         .par_iter()
         .map(|file| {
-            let result = process_single_file(file, encodings, args, &Arc::new(parser_pool::ParserPool::new()));
+            let result = process_single_file(
+                file,
+                encodings,
+                args,
+                &Arc::new(parser_pool::ParserPool::new()),
+            );
             if let Some(ref pb) = progress_bar {
                 pb.inc(1);
                 if args.verbose {
-                    pb.set_message(format!("Processing {}", file.file_name().unwrap_or_default().to_string_lossy()));
+                    pb.set_message(format!(
+                        "Processing {}",
+                        file.file_name().unwrap_or_default().to_string_lossy()
+                    ));
                 }
             }
             result
         })
         .collect();
-    
+
     if let Some(pb) = progress_bar {
         pb.finish_with_message("Complete");
     }
-    
-    let success_count = results.iter().filter(|r| r.as_ref().map_or(false, |&b| b)).count();
+
+    let success_count = results
+        .iter()
+        .filter(|r| r.as_ref().map_or(false, |&b| b))
+        .count();
     let error_count = results.len() - success_count;
-    
+
     if args.verbose && !args.quiet {
-        log::info!("Successfully processed {} files, {} errors", success_count, error_count);
+        log::info!(
+            "Successfully processed {} files, {} errors",
+            success_count,
+            error_count
+        );
     }
-    
+
     Ok((success_count, error_count))
 }
 
@@ -231,7 +262,8 @@ pub fn walk_dir(
                 let path = path.path();
                 if path.is_dir() {
                     if should_walk_dir(path.to_str().unwrap_or_default()) {
-                        let (f, e) = walk_dir(path.to_str().unwrap_or_default(), encodings, truncate);
+                        let (f, e) =
+                            walk_dir(path.to_str().unwrap_or_default(), encodings, truncate);
                         file_count += f;
                         error_count += e;
                     }
