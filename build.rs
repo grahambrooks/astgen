@@ -71,10 +71,7 @@ fn extract_version(cargo_toml: &str, package_name: &str, versions: &mut Vec<(Str
         // Handle both "x.y.z" and { version = "x.y.z", ... } formats
         if let Some(stripped) = version_str.strip_prefix('"') {
             if let Some(end_pos) = stripped.find('"') {
-                versions.push((
-                    package_name.to_string(),
-                    stripped[..end_pos].to_string(),
-                ));
+                versions.push((package_name.to_string(), stripped[..end_pos].to_string()));
             }
         } else if version_str.starts_with('{') {
             let version_search = "version = \"";

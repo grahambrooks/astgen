@@ -18,10 +18,7 @@ impl ParserPool {
 
     #[allow(dead_code)]
     pub fn get_parser(&self, language_name: &str, language: &Language) -> Result<Parser> {
-        let mut entry = self
-            .parsers
-            .entry(language_name.to_string())
-            .or_default();
+        let mut entry = self.parsers.entry(language_name.to_string()).or_default();
 
         if let Some(mut parser) = entry.pop() {
             parser.set_language(language)?;

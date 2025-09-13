@@ -261,8 +261,7 @@ pub fn walk_dir(
             let path = path.path();
             if path.is_dir() {
                 if should_walk_dir(path.to_str().unwrap_or_default()) {
-                    let (f, e) =
-                        walk_dir(path.to_str().unwrap_or_default(), encodings, truncate);
+                    let (f, e) = walk_dir(path.to_str().unwrap_or_default(), encodings, truncate);
                     file_count += f;
                     error_count += e;
                 }
