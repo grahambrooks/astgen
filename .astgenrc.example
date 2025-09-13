@@ -1,0 +1,64 @@
+# Example astgen configuration file
+# Copy this to .astgenrc in your project root or home directory
+
+[patterns]
+# Custom file extension patterns for each language
+# Uses regex patterns to match file extensions
+rust = ["rs$", "rust$"]
+python = ["py$", "pyi$", "pyx$"]
+javascript = ["js$", "mjs$", "jsx$"]
+typescript = ["ts$", "tsx$"]
+java = ["java$"]
+go = ["go$"]
+csharp = ["cs$", "csx$"]
+ruby = ["rb$", "rake$"]
+
+[ignore]
+# Patterns for files and directories to ignore
+patterns = [
+    "*.log",
+    "*.tmp",
+    "*.cache",
+    "*.lock",
+    "node_modules/**",
+    "target/**",
+    ".git/**",
+    "__pycache__/**",
+    "*.pyc",
+    "dist/**",
+    "build/**"
+]
+
+# Directories to completely skip during traversal
+directories = [
+    "target",
+    "node_modules", 
+    ".git",
+    ".venv",
+    "__pycache__",
+    "dist",
+    "build",
+    ".next",
+    ".nuxt"
+]
+
+[output]
+# Default output format: "json", "pretty-json", or "yaml"
+format = "json"
+
+# Truncate output to this many characters (optional)
+# truncate = 10000
+
+# Pretty print JSON output
+pretty = false
+
+[performance]
+# Maximum number of threads for parallel processing
+# If not specified, uses number of CPU cores
+max_threads = 8
+
+# Maximum file size to process in MB
+max_file_size_mb = 10
+
+# Parser pool size for reusing parsers
+parser_pool_size = 10

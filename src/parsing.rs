@@ -21,15 +21,37 @@ pub fn parse_file(path: PathBuf, encoding: &Encoding, truncate: Option<usize>) -
 }
 
 pub fn parse_file_safe(path: PathBuf, encoding: &Encoding, truncate: Option<usize>) -> Result<String> {
-    let content = fs::read_to_string(&path)?;
+    parse_file_safe_with_size_limit(path, encoding, truncate, 10_000_000)
+}
+
+pub fn parse_file_safe_with_size_limit(
+    path: PathBuf, 
+    encoding: &Encoding, 
+    truncate: Option<usize>,
+    max_size_bytes: usize
+) -> Result<String> {
+    // Check file size before reading
+    let metadata = fs::metadata(&path)?;
+    let file_size = metadata.len() as usize;
     
-    // Check file size limit (default 10MB)
-    let max_size = 10_000_000; // 10MB in bytes
-    if content.len() > max_size {
-        return Err(AstgenError::InvalidInput(
-            format!("File too large: {} bytes (limit: {} bytes)", content.len(), max_size)
-        ));
+    if file_size > max_size_bytes {
+        return Err(AstgenError::FileTooLarge {
+            path: path.to_string_lossy().to_string(),
+            size: file_size,
+            limit: max_size_bytes,
+        });
     }
+    
+    let content = fs::read_to_string(&path).map_err(|e| {
+        if e.kind() == std::io::ErrorKind::InvalidData {
+            AstgenError::InvalidInput(format!(
+                "File contains invalid UTF-8: {}\nTry converting the file to UTF-8 encoding first.", 
+                path.display()
+            ))
+        } else {
+            AstgenError::IoError(e)
+        }
+    })?;
     
     let json_tree = build_parse_tree_safe(&content, encoding.language)?;
     
@@ -44,7 +66,12 @@ pub fn parse_file_safe(path: PathBuf, encoding: &Encoding, truncate: Option<usiz
         Some(len) => {
             let full_output = serde_json::to_string(&wrapped_json)?;
             if full_output.len() > len {
-                full_output[..len].to_string()
+                let mut truncated = full_output[..len].to_string();
+                // Try to end at a reasonable boundary
+                if let Some(last_brace) = truncated.rfind('}') {
+                    truncated.truncate(last_brace + 1);
+                }
+                truncated
             } else {
                 full_output
             }

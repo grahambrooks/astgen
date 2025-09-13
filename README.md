@@ -21,11 +21,35 @@ Instructions for installing **astgen** can be found under the [Releases](https:/
 
 ## Usage
 
-To generate an AST from a source code file, simply run:
+### Basic Usage
+
+Parse a single file:
+```bash
+astgen src/main.rs
+```
+
+Parse multiple files or directories:
+```bash
+astgen src/ tests/ examples/main.py
+```
+
+### Advanced Options
 
 ```bash
-cargo run -- <source-file>
+# Pretty JSON output with progress bar
+astgen --format pretty-json --progress src/
+
+# Filter files and save to file
+astgen --include "*.rs" --exclude "*test*" --output results.json src/
+
+# Parallel processing with custom thread count
+astgen --parallel 8 --max-file-size 50 src/
+
+# Dry run to see what would be processed
+astgen --dry-run --verbose src/
 ```
+
+See [USAGE.md](USAGE.md) for comprehensive usage examples.
 
 ## Creating a Release
 

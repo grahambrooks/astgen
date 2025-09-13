@@ -4,24 +4,33 @@ use std::fmt;
 pub enum AstgenError {
     IoError(std::io::Error),
     ParseError(String),
-    #[allow(dead_code)]
     LanguageNotSupported(String),
     InvalidInput(String),
     TreeSitterError(tree_sitter::LanguageError),
     SerializationError(String),
+    ConfigError(String),
+    FileTooLarge { path: String, size: usize, limit: usize },
+    UnsupportedFileType(String),
 }
 
 impl fmt::Display for AstgenError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            AstgenError::IoError(err) => write!(f, "IO error: {}", err),
+            AstgenError::IoError(err) => write!(f, "File system error: {}", err),
             AstgenError::ParseError(msg) => write!(f, "Parse error: {}", msg),
             AstgenError::LanguageNotSupported(ext) => {
-                write!(f, "Language not supported for extension: {}", ext)
+                write!(f, "Unsupported file type: .{}\n\nSupported extensions: .rs, .java, .cs, .go, .py, .ts, .tsx, .js, .rb\nUse --list-languages to see all supported languages.", ext)
             }
             AstgenError::InvalidInput(msg) => write!(f, "Invalid input: {}", msg),
-            AstgenError::TreeSitterError(err) => write!(f, "Tree-sitter error: {:?}", err),
-            AstgenError::SerializationError(msg) => write!(f, "Serialization error: {}", msg),
+            AstgenError::TreeSitterError(err) => write!(f, "Parser error: {:?}", err),
+            AstgenError::SerializationError(msg) => write!(f, "Output formatting error: {}", msg),
+            AstgenError::ConfigError(msg) => write!(f, "Configuration error: {}", msg),
+            AstgenError::FileTooLarge { path, size, limit } => {
+                write!(f, "File too large: {} ({} bytes)\nMaximum allowed size: {} bytes\nUse --max-file-size to increase the limit.", path, size, limit)
+            }
+            AstgenError::UnsupportedFileType(path) => {
+                write!(f, "Cannot determine language for file: {}\nSupported extensions: .rs, .java, .cs, .go, .py, .ts, .tsx, .js, .rb", path)
+            }
         }
     }
 }

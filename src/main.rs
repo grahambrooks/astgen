@@ -4,6 +4,7 @@ mod encoding;
 mod encodings;
 mod error;
 mod json;
+mod output;
 mod parser_pool;
 mod parsing;
 mod versions; // Add new module
@@ -71,7 +72,7 @@ fn main() -> Result<()> {
     // Process files
     if args.files.is_empty() {
         return Err(AstgenError::InvalidInput(
-            "No input files specified".to_string(),
+            "No input files specified.\n\nUsage: astgen <files...>\nExample: astgen src/main.rs\nExample: astgen src/\n\nUse --help for more options.".to_string(),
         ));
     }
 

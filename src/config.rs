@@ -44,9 +44,10 @@ pub struct PerformanceConfig {
 
 impl Config {
     pub fn load(path: &PathBuf) -> Result<Self> {
-        let content = std::fs::read_to_string(path)?;
+        let content = std::fs::read_to_string(path)
+            .map_err(|e| AstgenError::ConfigError(format!("Cannot read config file {}: {}", path.display(), e)))?;
         let config: Config = toml::from_str(&content)
-            .map_err(|e| AstgenError::InvalidInput(format!("Invalid config file: {}", e)))?;
+            .map_err(|e| AstgenError::ConfigError(format!("Invalid config file {}: {}\n\nCheck the TOML syntax and ensure all required fields are present.", path.display(), e)))?;
         Ok(config)
     }
 
@@ -105,8 +106,8 @@ mod tests {
         file.write_all(content.as_bytes()).unwrap();
         let err = Config::load(&file_path).unwrap_err();
         match err {
-            AstgenError::InvalidInput(_) => {}
-            _ => panic!("Expected InvalidInput error"),
+            AstgenError::ConfigError(_) => {}
+            _ => panic!("Expected ConfigError, got: {:?}", err),
         }
     }
 
