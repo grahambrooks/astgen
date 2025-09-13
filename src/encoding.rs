@@ -2,7 +2,6 @@ use regex::Regex;
 use std::path::Path;
 use tree_sitter::Language;
 
-
 pub struct Encoding<'a> {
     extension_pattern: Regex,
     pub(crate) language: &'a Language,
@@ -10,7 +9,7 @@ pub struct Encoding<'a> {
 }
 
 impl<'a> Encoding<'a> {
-    pub(crate) fn new(extension_pattern: &str, x: &'a Language,name: &'a str) -> Self {
+    pub(crate) fn new(extension_pattern: &str, x: &'a Language, name: &'a str) -> Self {
         let regex_pattern = Regex::new(extension_pattern).expect("Invalid regex pattern");
         Self {
             extension_pattern: regex_pattern,
@@ -69,7 +68,7 @@ mod tests {
 
     #[test]
     fn matches_ruby_extension() {
-        let ruby_language =  tree_sitter_ruby::LANGUAGE.into();
+        let ruby_language = tree_sitter_ruby::LANGUAGE.into();
         let encoding = Encoding::new(r"rb$", &ruby_language, "Ruby");
         assert!(encoding.matches("src/main.rb"));
     }

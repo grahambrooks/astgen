@@ -1,4 +1,4 @@
-on: [push]
+on: [push, pull_request]
 
 name: CI
 
@@ -11,7 +11,24 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - uses: actions-rs/cargo@v1
+          components: clippy, rustfmt
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+      - name: Build release
+        uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release --all-features
