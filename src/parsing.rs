@@ -6,28 +6,6 @@ use std::fs;
 use std::path::PathBuf;
 use tree_sitter::{Language, Parser};
 
-#[allow(dead_code)]
-pub fn parse_file(path: PathBuf, encoding: &Encoding, truncate: Option<usize>) -> bool {
-    match parse_file_safe(path, encoding, truncate) {
-        Ok(output) => {
-            println!("{}", output);
-            true
-        }
-        Err(e) => {
-            log::error!("Failed to parse file: {}", e);
-            false
-        }
-    }
-}
-
-pub fn parse_file_safe(
-    path: PathBuf,
-    encoding: &Encoding,
-    truncate: Option<usize>,
-) -> Result<String> {
-    parse_file_safe_with_size_limit(path, encoding, truncate, 10_000_000)
-}
-
 pub fn parse_file_safe_with_size_limit(
     path: PathBuf,
     encoding: &Encoding,
@@ -86,55 +64,6 @@ pub fn parse_file_safe_with_size_limit(
     Ok(json_output)
 }
 
-#[allow(dead_code)]
-pub fn parse_file_with_parser(
-    path: PathBuf,
-    encoding: &Encoding,
-    parser: &mut Parser,
-    truncate: Option<usize>,
-) -> Result<String> {
-    let content = fs::read_to_string(&path)?;
-
-    // Check file size limit
-    let max_size = 10_000_000; // 10MB in bytes
-    if content.len() > max_size {
-        return Err(AstgenError::InvalidInput(format!(
-            "File too large: {} bytes",
-            content.len()
-        )));
-    }
-
-    parser.set_language(encoding.language)?;
-
-    let tree = parser
-        .parse(&content, None)
-        .ok_or_else(|| AstgenError::ParseError("Failed to parse content".to_string()))?;
-
-    let root_node = tree.root_node();
-    let json_tree = crate::json::node_to_json(&content, root_node);
-
-    let wrapped_json = json!({
-        "version": "astgen-0.1",
-        "filename": path.to_string_lossy(),
-        "language": encoding.name,
-        "ast": json_tree
-    });
-
-    let json_output = match truncate {
-        Some(len) => {
-            let full_output = serde_json::to_string(&wrapped_json)?;
-            if full_output.len() > len {
-                full_output[..len].to_string()
-            } else {
-                full_output
-            }
-        }
-        None => serde_json::to_string(&wrapped_json)?,
-    };
-
-    Ok(json_output)
-}
-
 fn build_parse_tree_safe(content: &str, lang: &Language) -> Result<JsonNode> {
     let mut parser = Parser::new();
     parser.set_language(lang)?;
@@ -163,7 +92,7 @@ mod tests {
         file.flush().unwrap();
 
         // Create new temp file with proper extension
-        let mut new_file = NamedTempFile::with_suffix(&format!(".{}", extension)).unwrap();
+        let mut new_file = NamedTempFile::with_suffix(format!(".{}", extension)).unwrap();
         new_file.write_all(content.as_bytes()).unwrap();
         new_file.flush().unwrap();
         new_file
@@ -175,8 +104,13 @@ mod tests {
         let rust_language = tree_sitter_rust::LANGUAGE.into();
         let encoding = Encoding::new("rs$", &rust_language, "Rust");
 
-        let result = parse_file(temp_file.path().to_path_buf(), &encoding, None);
-        assert!(result);
+        let result = parse_file_safe_with_size_limit(
+            temp_file.path().to_path_buf(),
+            &encoding,
+            None,
+            10_000_000,
+        );
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -186,8 +120,13 @@ mod tests {
         let encoding = Encoding::new("rs$", &rust_language, "Rust");
 
         // Test with truncation - should still succeed
-        let result = parse_file(temp_file.path().to_path_buf(), &encoding, Some(100));
-        assert!(result);
+        let result = parse_file_safe_with_size_limit(
+            temp_file.path().to_path_buf(),
+            &encoding,
+            Some(100),
+            10_000_000,
+        );
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -196,8 +135,13 @@ mod tests {
         let js_language = tree_sitter_javascript::LANGUAGE.into();
         let encoding = Encoding::new("js$", &js_language, "JavaScript");
 
-        let result = parse_file(temp_file.path().to_path_buf(), &encoding, None);
-        assert!(result);
+        let result = parse_file_safe_with_size_limit(
+            temp_file.path().to_path_buf(),
+            &encoding,
+            None,
+            10_000_000,
+        );
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -206,8 +150,13 @@ mod tests {
         let python_language = tree_sitter_python::LANGUAGE.into();
         let encoding = Encoding::new("py$", &python_language, "Python");
 
-        let result = parse_file(temp_file.path().to_path_buf(), &encoding, None);
-        assert!(result);
+        let result = parse_file_safe_with_size_limit(
+            temp_file.path().to_path_buf(),
+            &encoding,
+            None,
+            10_000_000,
+        );
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -216,8 +165,13 @@ mod tests {
         let rust_language = tree_sitter_rust::LANGUAGE.into();
         let encoding = Encoding::new("rs$", &rust_language, "Rust");
 
-        let result = parse_file(temp_file.path().to_path_buf(), &encoding, None);
-        assert!(result); // Empty files should parse successfully
+        let result = parse_file_safe_with_size_limit(
+            temp_file.path().to_path_buf(),
+            &encoding,
+            None,
+            10_000_000,
+        );
+        assert!(result.is_ok()); // Empty files should parse successfully
     }
 
     #[test]
