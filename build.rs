@@ -34,15 +34,16 @@ fn generate_version_file(out_dir: &str) {
 
     for line in cargo_toml.lines() {
         let trimmed = line.trim();
-        if trimmed.starts_with('#') { continue; }
+        if trimmed.starts_with('#') {
+            continue;
+        }
         if trimmed.starts_with("tree-sitter-") {
             if let Some((name_part, rest)) = trimmed.split_once('=') {
                 let name = name_part.trim();
-                // Handle simple version specification "x.y.z" or inline table
                 let value = rest.trim();
-                if value.starts_with('"') {
-                    if let Some(end_quote) = value[1..].find('"') {
-                        let ver = &value[1..1 + end_quote];
+                if let Some(stripped) = value.strip_prefix('"') {
+                    if let Some(end_quote) = stripped.find('"') {
+                        let ver = &stripped[..end_quote];
                         versions.push((name.to_string(), ver.to_string()));
                     }
                 } else if value.starts_with('{') {
@@ -51,9 +52,9 @@ fn generate_version_file(out_dir: &str) {
                         let after = &value[vpos..];
                         if let Some(eq_pos) = after.find('=') {
                             let after_eq = after[eq_pos + 1..].trim();
-                            if after_eq.starts_with('"') {
-                                if let Some(end_quote) = after_eq[1..].find('"') {
-                                    let ver = &after_eq[1..1 + end_quote];
+                            if let Some(stripped) = after_eq.strip_prefix('"') {
+                                if let Some(end_quote) = stripped.find('"') {
+                                    let ver = &stripped[..end_quote];
                                     versions.push((name.to_string(), ver.to_string()));
                                 }
                             }

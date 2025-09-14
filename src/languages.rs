@@ -200,8 +200,7 @@ pub fn create_encodings() -> encodings::Encodings<'static> {
         .add("scala$", scala_lang, "Scala")
         .add("lua$", lua_lang, "Lua")
         .add("(hcl|tf|tfvars)$", hcl_lang, "HCL")
-        .add("(graphql|gql)$", graphql_lang, "GraphQL")
-        ;
+        .add("(graphql|gql)$", graphql_lang, "GraphQL");
 
     enc
 }
