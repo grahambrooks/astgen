@@ -5,11 +5,13 @@ This project is a Rust-based CLI tool for generating ASTs (Abstract Syntax Trees
 
 ## Coding Style
 - **Language:** Rust (main), with some test and script files.
-- **Formatting:** Use `rustfmt` for Rust code. Follow idiomatic Rust style.
+- **Warnings:** ` cargo clippy -- -D warnings` must pass without warnings.
+- **Formatting:** Use `cargo fmt` for Rust code. Follow idiomatic Rust style.
 - **Error Handling:** Prefer `Result` and `?` operator. Use custom error types where appropriate.
 - **Testing:** Use the built-in Rust test framework. Place integration tests in `tests/` and unit tests in `src/` modules.
 - **Dependencies:** Use only necessary crates. List all dependencies in `Cargo.toml`.
 - **Documentation:** Use Rust doc comments (`///`) for public functions, types, and modules.
+- **static linking:** Ensure the binary is statically linked for portability.
 
 ## Copilot Usage Guidelines
 - **Do:**

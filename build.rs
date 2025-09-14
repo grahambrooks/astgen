@@ -34,6 +34,7 @@ fn generate_version_file(out_dir: &str) {
 
     for line in cargo_toml.lines() {
         let trimmed = line.trim();
+        if trimmed.starts_with('#') { continue; }
         if trimmed.starts_with("tree-sitter-") {
             if let Some((name_part, rest)) = trimmed.split_once('=') {
                 let name = name_part.trim();
@@ -69,7 +70,10 @@ fn generate_version_file(out_dir: &str) {
 
     for (name, version) in &versions {
         let const_name = name.replace('-', "_").to_uppercase();
-        code.push_str(&format!("pub const {}_VERSION: &str = \"{}\";\n", const_name, version));
+        code.push_str(&format!(
+            "pub const {}_VERSION: &str = \"{}\";\n",
+            const_name, version
+        ));
     }
 
     code.push_str("\n/// All discovered tree-sitter parser versions (name, version)\n");

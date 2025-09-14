@@ -22,6 +22,10 @@ impl<'a> Encoding<'a> {
         if let Some(extension) = Path::new(file_path).extension().and_then(|e| e.to_str()) {
             return self.extension_pattern.is_match(extension);
         }
+        // If no extension, fall back to matching the full file name (e.g., Dockerfile)
+        if let Some(name) = Path::new(file_path).file_name().and_then(|n| n.to_str()) {
+            return self.extension_pattern.is_match(name);
+        }
         false
     }
 }

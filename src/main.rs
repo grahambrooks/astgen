@@ -4,16 +4,16 @@ mod encoding;
 mod encodings;
 mod error;
 mod json;
+mod languages;
 mod parsing;
 mod versions; // Add new module
-mod walk;
-mod languages; // new module
+mod walk; // new module
 
 use clap::Parser;
 use cli_types::Args;
 use error::{AstgenError, Result};
-use std::fs;
 use languages::{create_encodings, print_supported_languages};
+use std::fs;
 
 static VERSION: &str = concat!(
     env!("CARGO_PKG_VERSION"),
