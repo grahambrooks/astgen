@@ -83,13 +83,11 @@ fn main() -> Result<()> {
                     if args.verbose && !args.quiet {
                         log::info!("Processing directory: {}", file_arg.display());
                     }
-                    let (files, errors) =
-                        walk::process_directory(file_arg, &encodings, &args)?;
+                    let (files, errors) = walk::process_directory(file_arg, &encodings, &args)?;
                     total_files += files;
                     total_errors += errors;
                 } else {
-                    let result =
-                        walk::process_single_file(file_arg, &encodings, &args)?;
+                    let result = walk::process_single_file(file_arg, &encodings, &args)?;
                     if result {
                         total_files += 1;
                     } else {
@@ -214,7 +212,7 @@ mod tests {
     #[test]
     fn test_create_encodings_not_empty() {
         let encodings = create_encodings();
-        
+
         // Test that we can match some common file extensions
         assert!(encodings.match_file("test.rs").is_some());
         assert!(encodings.match_file("test.js").is_some());
@@ -274,7 +272,7 @@ mod tests {
         };
 
         let result = walk::process_directory(temp_path, &encodings, &args);
-        
+
         assert!(result.is_ok());
         let (file_count, error_count) = result.unwrap();
         assert_eq!(file_count, 2); // .rs and .js files
@@ -287,7 +285,7 @@ mod tests {
         let temp_path = temp_dir.path();
 
         let encodings = create_encodings();
-        
+
         let args = crate::cli_types::Args {
             files: vec![temp_path.to_path_buf()],
             format: crate::cli_types::OutputFormat::Json,
@@ -308,7 +306,7 @@ mod tests {
         };
 
         let result = walk::process_directory(temp_path, &encodings, &args);
-        
+
         assert!(result.is_ok());
         let (file_count, error_count) = result.unwrap();
         assert_eq!(file_count, 0);
@@ -332,7 +330,7 @@ mod tests {
         fs::write(nested_dir.join("module.rs"), "pub fn module() {}").unwrap();
 
         let encodings = create_encodings();
-        
+
         let args = crate::cli_types::Args {
             files: vec![temp_path.to_path_buf()],
             format: crate::cli_types::OutputFormat::Json,
@@ -353,7 +351,7 @@ mod tests {
         };
 
         let result = walk::process_directory(temp_path, &encodings, &args);
-        
+
         assert!(result.is_ok());
         let (file_count, error_count) = result.unwrap();
         assert_eq!(file_count, 3); // All three .rs files

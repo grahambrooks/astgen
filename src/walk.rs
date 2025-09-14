@@ -193,11 +193,7 @@ pub fn process_directory(
     let results: Vec<Result<bool>> = files
         .par_iter()
         .map(|file| {
-            let result = process_single_file(
-                file,
-                encodings,
-                args,
-            );
+            let result = process_single_file(file, encodings, args);
             if let Some(ref pb) = progress_bar {
                 pb.inc(1);
                 if args.verbose {

@@ -104,7 +104,12 @@ mod tests {
         let rust_language = tree_sitter_rust::LANGUAGE.into();
         let encoding = Encoding::new("rs$", &rust_language, "Rust");
 
-        let result = parse_file_safe_with_size_limit(temp_file.path().to_path_buf(), &encoding, None, 10_000_000);
+        let result = parse_file_safe_with_size_limit(
+            temp_file.path().to_path_buf(),
+            &encoding,
+            None,
+            10_000_000,
+        );
         assert!(result.is_ok());
     }
 
@@ -115,7 +120,12 @@ mod tests {
         let encoding = Encoding::new("rs$", &rust_language, "Rust");
 
         // Test with truncation - should still succeed
-        let result = parse_file_safe_with_size_limit(temp_file.path().to_path_buf(), &encoding, Some(100), 10_000_000);
+        let result = parse_file_safe_with_size_limit(
+            temp_file.path().to_path_buf(),
+            &encoding,
+            Some(100),
+            10_000_000,
+        );
         assert!(result.is_ok());
     }
 
@@ -125,7 +135,12 @@ mod tests {
         let js_language = tree_sitter_javascript::LANGUAGE.into();
         let encoding = Encoding::new("js$", &js_language, "JavaScript");
 
-        let result = parse_file_safe_with_size_limit(temp_file.path().to_path_buf(), &encoding, None, 10_000_000);
+        let result = parse_file_safe_with_size_limit(
+            temp_file.path().to_path_buf(),
+            &encoding,
+            None,
+            10_000_000,
+        );
         assert!(result.is_ok());
     }
 
@@ -135,7 +150,12 @@ mod tests {
         let python_language = tree_sitter_python::LANGUAGE.into();
         let encoding = Encoding::new("py$", &python_language, "Python");
 
-        let result = parse_file_safe_with_size_limit(temp_file.path().to_path_buf(), &encoding, None, 10_000_000);
+        let result = parse_file_safe_with_size_limit(
+            temp_file.path().to_path_buf(),
+            &encoding,
+            None,
+            10_000_000,
+        );
         assert!(result.is_ok());
     }
 
@@ -145,7 +165,12 @@ mod tests {
         let rust_language = tree_sitter_rust::LANGUAGE.into();
         let encoding = Encoding::new("rs$", &rust_language, "Rust");
 
-        let result = parse_file_safe_with_size_limit(temp_file.path().to_path_buf(), &encoding, None, 10_000_000);
+        let result = parse_file_safe_with_size_limit(
+            temp_file.path().to_path_buf(),
+            &encoding,
+            None,
+            10_000_000,
+        );
         assert!(result.is_ok()); // Empty files should parse successfully
     }
 
