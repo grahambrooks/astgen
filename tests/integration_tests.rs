@@ -235,3 +235,22 @@ fn test_empty_file() {
     let json: Value = serde_json::from_str(stdout.trim()).unwrap();
     assert_eq!(json["language"], "Rust");
 }
+
+#[test]
+fn test_list_languages_output() {
+    let output = run_astgen(&["--list-languages"]);
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("Supported Languages:"));
+    assert!(stdout.contains("Language"));
+    assert!(stdout.contains("Tree-sitter Version"));
+    // Check a couple of known languages
+    assert!(stdout.contains("Rust"));
+    assert!(stdout.contains("JavaScript"));
+    // Basic alignment: all data lines should have 3 pipe separators beyond borders
+    let data_lines: Vec<&str> = stdout.lines().filter(|l| l.starts_with("│ ")).collect();
+    assert!(!data_lines.is_empty());
+    for line in data_lines {
+        let pipe_count = line.chars().filter(|&c| c == '│').count();
+        assert_eq!(pipe_count, 4, "Line not properly aligned: {}", line);
+    }
+}
