@@ -1,20 +1,17 @@
 use crate::cli_types::{format_output, Args};
 use crate::encodings;
 use crate::error::{AstgenError, Result};
-use crate::parser_pool;
 use crate::parsing;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
-use std::sync::Arc;
 
 pub fn process_single_file(
     file_path: &std::path::Path,
     encodings: &encodings::Encodings,
     args: &Args,
-    _parser_pool: &Arc<parser_pool::ParserPool>,
 ) -> Result<bool> {
     // Check include/exclude patterns
     if !should_process_file(file_path, args) {
@@ -134,7 +131,6 @@ pub fn process_directory(
     dir_path: &std::path::Path,
     encodings: &encodings::Encodings,
     args: &Args,
-    _parser_pool: &Arc<parser_pool::ParserPool>,
 ) -> Result<(usize, usize)> {
     let mut walker_builder = ignore::WalkBuilder::new(dir_path);
     walker_builder
@@ -201,7 +197,6 @@ pub fn process_directory(
                 file,
                 encodings,
                 args,
-                &Arc::new(parser_pool::ParserPool::new()),
             );
             if let Some(ref pb) = progress_bar {
                 pb.inc(1);
@@ -235,52 +230,4 @@ pub fn process_directory(
     }
 
     Ok((success_count, error_count))
-}
-
-#[allow(dead_code)]
-pub fn should_walk_dir(dir: &str) -> bool {
-    let ignore_dirs = vec!["target", "node_modules", ".git", ".venv"];
-    for ignore_dir in ignore_dirs {
-        if dir.contains(ignore_dir) {
-            return false;
-        }
-    }
-    true
-}
-
-#[allow(dead_code)]
-pub fn walk_dir(
-    dir: &str,
-    encodings: &encodings::Encodings,
-    truncate: Option<usize>,
-) -> (usize, usize) {
-    let mut file_count = 0;
-    let mut error_count = 0;
-    if let Ok(paths) = fs::read_dir(dir) {
-        for path in paths.flatten() {
-            let path = path.path();
-            if path.is_dir() {
-                if should_walk_dir(path.to_str().unwrap_or_default()) {
-                    let (f, e) = walk_dir(path.to_str().unwrap_or_default(), encodings, truncate);
-                    file_count += f;
-                    error_count += e;
-                }
-            } else {
-                let encoding = encodings.match_file(&path.to_string_lossy());
-                match encoding {
-                    Some(lang) => {
-                        if crate::parsing::parse_file(path, lang, truncate) {
-                            file_count += 1;
-                        } else {
-                            error_count += 1;
-                        }
-                    }
-                    None => {
-                        continue;
-                    }
-                }
-            }
-        }
-    }
-    (file_count, error_count)
 }

@@ -4,7 +4,6 @@ use std::fmt;
 pub enum AstgenError {
     IoError(std::io::Error),
     ParseError(String),
-    LanguageNotSupported(String),
     InvalidInput(String),
     TreeSitterError(tree_sitter::LanguageError),
     SerializationError(String),
@@ -22,9 +21,6 @@ impl fmt::Display for AstgenError {
         match self {
             AstgenError::IoError(err) => write!(f, "File system error: {}", err),
             AstgenError::ParseError(msg) => write!(f, "Parse error: {}", msg),
-            AstgenError::LanguageNotSupported(ext) => {
-                write!(f, "Unsupported file type: .{}\n\nSupported extensions: .rs, .java, .cs, .go, .py, .ts, .tsx, .js, .rb\nUse --list-languages to see all supported languages.", ext)
-            }
             AstgenError::InvalidInput(msg) => write!(f, "Invalid input: {}", msg),
             AstgenError::TreeSitterError(err) => write!(f, "Parser error: {:?}", err),
             AstgenError::SerializationError(msg) => write!(f, "Output formatting error: {}", msg),
@@ -68,7 +64,7 @@ mod tests {
 
     #[test]
     fn test_io_error_conversion() {
-        let err = io::Error::new(io::ErrorKind::Other, "fail");
+        let err = io::Error::other("fail");
         let astgen_err: AstgenError = err.into();
         match astgen_err {
             AstgenError::IoError(_) => {}

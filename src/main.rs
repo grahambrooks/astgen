@@ -4,8 +4,6 @@ mod encoding;
 mod encodings;
 mod error;
 mod json;
-mod output;
-mod parser_pool;
 mod parsing;
 mod versions; // Add new module
 mod walk;
@@ -14,7 +12,6 @@ use clap::Parser;
 use cli_types::Args;
 use error::{AstgenError, Result};
 use std::fs;
-use std::sync::Arc;
 // Import the version constants
 use versions::*;
 
@@ -67,7 +64,6 @@ fn main() -> Result<()> {
 
     // Set up encodings
     let encodings = create_encodings();
-    let parser_pool = Arc::new(parser_pool::ParserPool::new());
 
     // Process files
     if args.files.is_empty() {
@@ -88,12 +84,12 @@ fn main() -> Result<()> {
                         log::info!("Processing directory: {}", file_arg.display());
                     }
                     let (files, errors) =
-                        walk::process_directory(file_arg, &encodings, &args, &parser_pool)?;
+                        walk::process_directory(file_arg, &encodings, &args)?;
                     total_files += files;
                     total_errors += errors;
                 } else {
                     let result =
-                        walk::process_single_file(file_arg, &encodings, &args, &parser_pool)?;
+                        walk::process_single_file(file_arg, &encodings, &args)?;
                     if result {
                         total_files += 1;
                     } else {
@@ -212,68 +208,35 @@ fn list_supported_languages() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::walk::walk_dir;
     use std::fs;
     use tempfile::TempDir;
 
     #[test]
-    fn test_should_walk_dir_allows_normal_dirs() {
-        assert!(walk::should_walk_dir("src"));
-        assert!(walk::should_walk_dir("lib"));
-        assert!(walk::should_walk_dir("tests"));
-        assert!(walk::should_walk_dir("examples"));
-        assert!(walk::should_walk_dir("/path/to/src"));
-        assert!(walk::should_walk_dir("./my-project/src"));
+    fn test_create_encodings_not_empty() {
+        let encodings = create_encodings();
+        
+        // Test that we can match some common file extensions
+        assert!(encodings.match_file("test.rs").is_some());
+        assert!(encodings.match_file("test.js").is_some());
+        assert!(encodings.match_file("test.py").is_some());
+        assert!(encodings.match_file("test.java").is_some());
+        assert!(encodings.match_file("test.go").is_some());
+        assert!(encodings.match_file("test.ts").is_some());
+        assert!(encodings.match_file("test.tsx").is_some());
+        assert!(encodings.match_file("test.cs").is_some());
+        assert!(encodings.match_file("test.rb").is_some());
     }
 
     #[test]
-    fn test_should_walk_dir_ignores_target_dir() {
-        assert!(!walk::should_walk_dir("target"));
-        assert!(!walk::should_walk_dir("./target"));
-        assert!(!walk::should_walk_dir("/path/to/target"));
-        assert!(!walk::should_walk_dir("my-project/target"));
-        assert!(!walk::should_walk_dir("target/debug"));
+    fn test_create_encodings_handles_unknown_extensions() {
+        let encodings = create_encodings();
+        assert!(encodings.match_file("test.unknown").is_none());
+        assert!(encodings.match_file("test.txt").is_none());
+        assert!(encodings.match_file("test").is_none());
     }
 
     #[test]
-    fn test_should_walk_dir_ignores_node_modules() {
-        assert!(!walk::should_walk_dir("node_modules"));
-        assert!(!walk::should_walk_dir("./node_modules"));
-        assert!(!walk::should_walk_dir("/path/to/node_modules"));
-        assert!(!walk::should_walk_dir("my-project/node_modules"));
-        assert!(!walk::should_walk_dir("node_modules/some-package"));
-    }
-
-    #[test]
-    fn test_should_walk_dir_ignores_git_dir() {
-        assert!(!walk::should_walk_dir(".git"));
-        assert!(!walk::should_walk_dir("./.git"));
-        assert!(!walk::should_walk_dir("/path/to/.git"));
-        assert!(!walk::should_walk_dir("my-project/.git"));
-        assert!(!walk::should_walk_dir(".git/hooks"));
-    }
-
-    #[test]
-    fn test_should_walk_dir_ignores_venv_dir() {
-        assert!(!walk::should_walk_dir(".venv"));
-        assert!(!walk::should_walk_dir("./.venv"));
-        assert!(!walk::should_walk_dir("/path/to/.venv"));
-        assert!(!walk::should_walk_dir("my-project/.venv"));
-        // Note: "venv" without dot IS allowed - only ".venv" is ignored
-        assert!(walk::should_walk_dir("venv"));
-        assert!(walk::should_walk_dir("./venv"));
-    }
-
-    #[test]
-    fn test_should_walk_dir_case_sensitive() {
-        // Should be case sensitive
-        assert!(walk::should_walk_dir("TARGET")); // Different case
-        assert!(walk::should_walk_dir("Target"));
-        assert!(walk::should_walk_dir("NODE_MODULES"));
-    }
-
-    #[test]
-    fn test_walk_dir_counts_files_correctly() {
+    fn test_walk_directory_processes_files() {
         let temp_dir = TempDir::new().unwrap();
         let temp_path = temp_dir.path();
 
@@ -288,47 +251,72 @@ mod tests {
         fs::write(&unknown_file, "some text").unwrap();
 
         // Create encodings
-        let mut encodings = encodings::Encodings::new();
-        let rust_language = tree_sitter_rust::LANGUAGE.into();
-        let js_language = tree_sitter_javascript::LANGUAGE.into();
-        encodings
-            .add("rs$", &rust_language, "Rust")
-            .add("js$", &js_language, "JavaScript");
+        let encodings = create_encodings();
 
-        let (file_count, error_count) = walk_dir(temp_path.to_str().unwrap(), &encodings, None);
+        // Test with dry run to avoid actual processing in tests
+        let args = crate::cli_types::Args {
+            files: vec![temp_path.to_path_buf()],
+            format: crate::cli_types::OutputFormat::Json,
+            truncate: None,
+            verbose: false,
+            quiet: true,
+            parallel: None,
+            dry_run: true,
+            max_file_size: 10,
+            follow_links: false,
+            max_depth: 100,
+            list_languages: false,
+            config: None,
+            include: vec![],
+            exclude: vec![],
+            output: None,
+            progress: false,
+        };
 
+        let result = walk::process_directory(temp_path, &encodings, &args);
+        
+        assert!(result.is_ok());
+        let (file_count, error_count) = result.unwrap();
         assert_eq!(file_count, 2); // .rs and .js files
-        assert_eq!(error_count, 0); // No parsing errors expected
+        assert_eq!(error_count, 1); // .txt file is unsupported
     }
 
     #[test]
-    fn test_walk_dir_skips_ignored_directories() {
+    fn test_walk_directory_with_empty_directory() {
         let temp_dir = TempDir::new().unwrap();
         let temp_path = temp_dir.path();
 
-        // Create a normal file
-        let rust_file = temp_path.join("test.rs");
-        fs::write(&rust_file, "fn main() {}").unwrap();
+        let encodings = create_encodings();
+        
+        let args = crate::cli_types::Args {
+            files: vec![temp_path.to_path_buf()],
+            format: crate::cli_types::OutputFormat::Json,
+            truncate: None,
+            verbose: false,
+            quiet: true,
+            parallel: None,
+            dry_run: true,
+            max_file_size: 10,
+            follow_links: false,
+            max_depth: 100,
+            list_languages: false,
+            config: None,
+            include: vec![],
+            exclude: vec![],
+            output: None,
+            progress: false,
+        };
 
-        // Create ignored directory with file
-        let target_dir = temp_path.join("target");
-        fs::create_dir(&target_dir).unwrap();
-        let target_file = target_dir.join("ignored.rs");
-        fs::write(&target_file, "fn ignored() {}").unwrap();
-
-        // Create encodings
-        let mut encodings = encodings::Encodings::new();
-        let rust_language = tree_sitter_rust::LANGUAGE.into();
-        encodings.add("rs$", &rust_language, "Rust");
-
-        let (file_count, error_count) = walk_dir(temp_path.to_str().unwrap(), &encodings, None);
-
-        assert_eq!(file_count, 1); // Only the file outside target/
+        let result = walk::process_directory(temp_path, &encodings, &args);
+        
+        assert!(result.is_ok());
+        let (file_count, error_count) = result.unwrap();
+        assert_eq!(file_count, 0);
         assert_eq!(error_count, 0);
     }
 
     #[test]
-    fn test_walk_dir_handles_nested_directories() {
+    fn test_walk_directory_with_nested_structure() {
         let temp_dir = TempDir::new().unwrap();
         let temp_path = temp_dir.path();
 
@@ -343,29 +331,32 @@ mod tests {
         fs::write(src_dir.join("lib.rs"), "pub fn lib() {}").unwrap();
         fs::write(nested_dir.join("module.rs"), "pub fn module() {}").unwrap();
 
-        // Create encodings
-        let mut encodings = encodings::Encodings::new();
-        let rust_language = tree_sitter_rust::LANGUAGE.into();
-        encodings.add("rs$", &rust_language, "Rust");
+        let encodings = create_encodings();
+        
+        let args = crate::cli_types::Args {
+            files: vec![temp_path.to_path_buf()],
+            format: crate::cli_types::OutputFormat::Json,
+            truncate: None,
+            verbose: false,
+            quiet: true,
+            parallel: None,
+            dry_run: true,
+            max_file_size: 10,
+            follow_links: false,
+            max_depth: 100,
+            list_languages: false,
+            config: None,
+            include: vec![],
+            exclude: vec![],
+            output: None,
+            progress: false,
+        };
 
-        let (file_count, error_count) = walk_dir(temp_path.to_str().unwrap(), &encodings, None);
-
+        let result = walk::process_directory(temp_path, &encodings, &args);
+        
+        assert!(result.is_ok());
+        let (file_count, error_count) = result.unwrap();
         assert_eq!(file_count, 3); // All three .rs files
-        assert_eq!(error_count, 0);
-    }
-
-    #[test]
-    fn test_walk_dir_with_empty_directory() {
-        let temp_dir = TempDir::new().unwrap();
-        let temp_path = temp_dir.path();
-
-        let mut encodings = encodings::Encodings::new();
-        let rust_language = tree_sitter_rust::LANGUAGE.into();
-        encodings.add("rs$", &rust_language, "Rust");
-
-        let (file_count, error_count) = walk_dir(temp_path.to_str().unwrap(), &encodings, None);
-
-        assert_eq!(file_count, 0);
         assert_eq!(error_count, 0);
     }
 }

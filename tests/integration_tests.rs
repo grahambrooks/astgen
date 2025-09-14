@@ -16,7 +16,7 @@ fn run_astgen(args: &[&str]) -> std::process::Output {
 
 // Helper function to create a temporary file with content
 fn create_temp_file_with_extension(content: &str, extension: &str) -> NamedTempFile {
-    let mut file = NamedTempFile::with_suffix(&format!(".{}", extension)).unwrap();
+    let mut file = NamedTempFile::with_suffix(format!(".{}", extension)).unwrap();
     file.write_all(content.as_bytes()).unwrap();
     file.flush().unwrap();
     file
