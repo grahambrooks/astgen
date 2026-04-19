@@ -1,0 +1,31 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: astgen
+  title: AST Generator
+  description: >-
+    Rust CLI for generating Tree-sitter AST output as JSON from source files
+    and directories.
+  annotations:
+    github.com/project-slug: grahambrooks/astgen
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - rust
+    - cli
+    - ast
+    - tree-sitter
+  links:
+    - url: https://github.com/grahambrooks/astgen
+      title: Source Repository
+      icon: github
+    - url: https://github.com/grahambrooks/astgen/releases
+      title: Releases
+    - url: https://github.com/grahambrooks/astgen/issues
+      title: Issue Tracker
+    - url: https://github.com/grahambrooks/astgen/blob/main/README.md
+      title: README
+spec:
+  type: tool
+  lifecycle: production
+  owner: user:default/grahambrooks
+
