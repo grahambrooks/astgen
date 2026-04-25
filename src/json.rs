@@ -13,7 +13,7 @@ pub(crate) struct JsonNode {
 
 pub(crate) fn node_to_json(source_code: &str, node: Node) -> JsonNode {
     let mut children = Vec::new();
-    for i in 0..node.child_count() {
+    for i in 0..node.child_count() as u32 {
         children.push(node_to_json(source_code, node.child(i).unwrap()));
     }
     let text_value = source_code[node.start_byte()..node.end_byte()].to_string();

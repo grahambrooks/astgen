@@ -34,6 +34,7 @@ static SCALA_LANGUAGE: OnceLock<tree_sitter::Language> = OnceLock::new();
 static LUA_LANGUAGE: OnceLock<tree_sitter::Language> = OnceLock::new();
 static HCL_LANGUAGE: OnceLock<tree_sitter::Language> = OnceLock::new();
 static GRAPHQL_LANGUAGE: OnceLock<tree_sitter::Language> = OnceLock::new();
+static DOCKERFILE_LANGUAGE: OnceLock<tree_sitter::Language> = OnceLock::new();
 /// Return static metadata for all supported languages.
 pub fn supported_languages() -> Vec<LanguageInfo> {
     vec![
@@ -144,6 +145,11 @@ pub fn supported_languages() -> Vec<LanguageInfo> {
             extensions: &[".graphql", ".gql"],
             version: TREE_SITTER_GRAPHQL_VERSION,
         },
+        LanguageInfo {
+            name: "Dockerfile",
+            extensions: &["Dockerfile", "Dockerfile.*", "*.dockerfile"],
+            version: TREE_SITTER_DOCKERFILE_VERSION,
+        },
     ]
 }
 
@@ -174,6 +180,8 @@ pub fn create_encodings() -> encodings::Encodings<'static> {
     let lua_lang = LUA_LANGUAGE.get_or_init(|| tree_sitter_lua::LANGUAGE.into());
     let hcl_lang = HCL_LANGUAGE.get_or_init(|| tree_sitter_hcl::LANGUAGE.into());
     let graphql_lang = GRAPHQL_LANGUAGE.get_or_init(|| tree_sitter_graphql::LANGUAGE.into());
+    let dockerfile_lang =
+        DOCKERFILE_LANGUAGE.get_or_init(|| tree_sitter_dockerfile::language());
 
     let mut enc = encodings::Encodings::new();
     enc.add("rs$", rust_lang, "Rust")
@@ -200,7 +208,8 @@ pub fn create_encodings() -> encodings::Encodings<'static> {
         .add("scala$", scala_lang, "Scala")
         .add("lua$", lua_lang, "Lua")
         .add("(hcl|tf|tfvars)$", hcl_lang, "HCL")
-        .add("(graphql|gql)$", graphql_lang, "GraphQL");
+        .add("(graphql|gql)$", graphql_lang, "GraphQL")
+        .add("^Dockerfile(\\..+)?$|\\.dockerfile$", dockerfile_lang, "Dockerfile");
 
     enc
 }
