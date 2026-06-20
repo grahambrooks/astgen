@@ -180,8 +180,7 @@ pub fn create_encodings() -> encodings::Encodings<'static> {
     let lua_lang = LUA_LANGUAGE.get_or_init(|| tree_sitter_lua::LANGUAGE.into());
     let hcl_lang = HCL_LANGUAGE.get_or_init(|| tree_sitter_hcl::LANGUAGE.into());
     let graphql_lang = GRAPHQL_LANGUAGE.get_or_init(|| tree_sitter_graphql::LANGUAGE.into());
-    let dockerfile_lang =
-        DOCKERFILE_LANGUAGE.get_or_init(|| tree_sitter_dockerfile::language());
+    let dockerfile_lang = DOCKERFILE_LANGUAGE.get_or_init(tree_sitter_dockerfile::language);
 
     let mut enc = encodings::Encodings::new();
     enc.add("rs$", rust_lang, "Rust")
@@ -209,7 +208,11 @@ pub fn create_encodings() -> encodings::Encodings<'static> {
         .add("lua$", lua_lang, "Lua")
         .add("(hcl|tf|tfvars)$", hcl_lang, "HCL")
         .add("(graphql|gql)$", graphql_lang, "GraphQL")
-        .add("^Dockerfile(\\..+)?$|\\.dockerfile$", dockerfile_lang, "Dockerfile");
+        .add(
+            "^Dockerfile(\\..+)?$|\\.dockerfile$",
+            dockerfile_lang,
+            "Dockerfile",
+        );
 
     enc
 }
