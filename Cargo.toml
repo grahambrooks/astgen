@@ -12,7 +12,7 @@ license = "MIT"
 regex = "1.11.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tree-sitter = "0.26"
+tree-sitter = "0.27"
 # Existing core languages
 tree-sitter-rust = "0.24.0"
 tree-sitter-java = "0.23.5"
