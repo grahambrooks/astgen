@@ -1,0 +1,19 @@
+README.md
+  s_5ded916f48334c::t_71e076bc0204fb 105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e6f881c54b35065a7fc598231944054f3c74bb02",
+  "prompts": {},
+  "sessions": {
+    "s_5ded916f48334c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "531b4dcd-826e-4857-8663-13767f5352e9",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Graham Brooks <graham@grahambrooks.com>"
+    }
+  }
+}
