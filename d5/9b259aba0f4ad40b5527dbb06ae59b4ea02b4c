@@ -1,0 +1,19 @@
+Cargo.toml
+  s_5ded916f48334c::t_8291142dee649f 66-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d59b259aba0f4ad40b5527dbb06ae59b4ea02b4c",
+  "prompts": {},
+  "sessions": {
+    "s_5ded916f48334c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "531b4dcd-826e-4857-8663-13767f5352e9",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Graham Brooks <graham@grahambrooks.com>"
+    }
+  }
+}
