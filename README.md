@@ -53,38 +53,23 @@ See [USAGE.md](USAGE.md) for comprehensive usage examples.
 
 ## Creating a Release
 
-Releases are managed using the `make-release.sh` script along with GitHub Actions. Follow these steps to create a new release:
-
-1. Run the `make-release.sh` script with the appropriate version bump:
-
-   #### Patch Release
-   ```bash
-   ./make-release.sh -b patch
-   ```
-
-   #### Minor Release
-   ```bash
-   ./make-release.sh -b minor
-   ```
-
-   #### Major Release
-   ```bash
-   ./make-release.sh -b major
-   ```
-
-2. The release build and process are automated using `.github/workflows/release.yml`, which creates new binaries and updates the [homebrew-astgen](https://github.com/grahambrooks/homebrew-astgen) repository with the latest release.
-
-To update the supported release platforms, use:
+Releases are cut by pushing a CalVer tag (`vYYYY.M.N`, e.g. `v2026.9.0`):
 
 ```bash
-cargo dist init
+git tag v2026.9.0 && git push origin v2026.9.0
 ```
 
-For self-updates, run:
+The `release` workflow (`.github/workflows/release.yml`, release-kit v2, configured by `.release.env`)
+stamps the tag's version into `Cargo.toml`, builds `astgen-<tag>-<target>.tar.gz` for macOS and Linux
+(x86_64 and aarch64), publishes them with `SHA256SUMS` on the GitHub release, and merges a PR that updates
+the in-repo Homebrew formula `Formula/astgen.rb`. Install with:
 
 ```bash
-cargo dist selfupdate
+brew tap grahambrooks/astgen https://github.com/grahambrooks/astgen
+brew install grahambrooks/astgen/astgen
 ```
+
+or run it without installing via `bx grahambrooks/astgen`.
 
 ## Contributing
 

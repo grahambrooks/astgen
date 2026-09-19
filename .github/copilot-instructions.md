@@ -38,7 +38,8 @@ This project is a Rust-based CLI tool for generating ASTs (Abstract Syntax Trees
 - `src/` — main source code
 - `tests/` — integration tests
 - `IMPROVEMENTS/` — plans, enhancements, and roadmap
-- `build.rs`, `make-release.sh` — build scripts
+- `build.rs` — build script
+- `.github/workflows/release.yml`, `scripts/release.py`, `.release.env` — release pipeline (release-kit v2; tag `vYYYY.M.N` to release)
 
 ## Example Commit Message
 ```
