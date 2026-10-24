@@ -1,0 +1,19 @@
+Cargo.lock
+  s_c7db583e01ac64::t_1591afc069f668 138,140,183,251,253,261,263,268,273,275,338,340,360,362,549,551,810,864,866,893,895,932,1165,1167,1205,1207,1275
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "631b50fb27e3ed4a32d4c795e2b0583fdc55b39d",
+  "prompts": {},
+  "sessions": {
+    "s_c7db583e01ac64": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a64f563f-ca61-4776-97cf-501db44bb230",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Graham Brooks <graham@grahambrooks.com>"
+    }
+  }
+}
