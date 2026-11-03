@@ -53,10 +53,12 @@ See [USAGE.md](USAGE.md) for comprehensive usage examples.
 
 ## Creating a Release
 
-Releases are cut by pushing a CalVer tag (`vYYYY.M.N`, e.g. `v2026.9.0`):
+Releases are cut by pushing a CalVer tag, `vYYYY.M.D` (the release date; a second release the same day
+takes the next free number). `make release` tags `origin/main` with the next one and pushes the tag
+(`make release-dry` previews it):
 
 ```bash
-git tag v2026.9.0 && git push origin v2026.9.0
+make release
 ```
 
 The `release` workflow (`.github/workflows/release.yml`, release-kit v2, configured by `.release.env`)

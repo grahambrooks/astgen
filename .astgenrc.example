@@ -32,7 +32,7 @@ patterns = [
 # Directories to completely skip during traversal
 directories = [
     "target",
-    "node_modules", 
+    "node_modules",
     ".git",
     ".venv",
     "__pycache__",

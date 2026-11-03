@@ -16,13 +16,15 @@ cargo test test_parse_file_rust_success   # run a single test by name
 cargo test parsing::             # run all tests in a module
 cargo clippy -- -D warnings      # lint — CI fails on any warning
 cargo fmt --all -- --check       # formatting check (CI); use `cargo fmt` to fix
+make check                       # the full CI gate: fmt check, clippy, test, release build (all --locked)
+make hooks                       # install the prek git hooks (make check runs before every push)
 ```
 
-CI (`.github/workflows/ci.yaml`) runs `test`, `clippy -- -D warnings`, `fmt --check`, and a release build on every push/PR. Run all four locally before pushing — clippy-as-error is the most common CI break (see commit `c9d2379`).
+CI (`.github/workflows/ci.yaml`) runs `fmt --check`, `clippy -- -D warnings`, `test`, and a release build on every push/PR; `make check` runs exactly those. Run it before pushing — clippy-as-error is the most common CI break (see commit `c9d2379`).
 
 ## Releases
 
-Releases are driven by `make-release.sh -b {patch|minor|major}`, which bumps the version and triggers `.github/workflows/release.yml` (built on `cargo dist`). The release workflow produces binaries and updates the `grahambrooks/homebrew-astgen` tap. Do not hand-edit release artifacts.
+The tag is the version. `make release` tags `origin/main` with the next CalVer, `vYYYY.M.D` (today's UTC date, bumping the last number while that tag exists), and pushes only the tag; `make release-dry` previews it. Nothing is bumped locally. The tag push runs `.github/workflows/release.yml` (release-kit v2, configured by `.release.env`), which builds the binaries, publishes the GitHub release, and merges a PR that bumps `Cargo.toml` and `Formula/astgen.rb`. Never edit `release.yml`, `scripts/release.py` or `release.mk` here; do not hand-edit release artifacts.
 
 ## Architecture
 

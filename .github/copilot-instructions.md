@@ -49,4 +49,3 @@ feat: add support for parsing Ruby files and outputting AST as JSON
 ---
 
 *This file is for Copilot and other AI coding assistants. Please follow these instructions to ensure consistency and quality in code contributions.*
-
