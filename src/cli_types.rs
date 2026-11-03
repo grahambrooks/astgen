@@ -180,15 +180,14 @@ impl Args {
         }
 
         // Validate output file path
-        if let Some(output_path) = &self.output {
-            if let Some(parent) = output_path.parent() {
-                if !parent.exists() {
-                    return Err(crate::error::AstgenError::InvalidInput(format!(
-                        "Output directory does not exist: {}. Create the directory first.",
-                        parent.display()
-                    )));
-                }
-            }
+        if let Some(output_path) = &self.output
+            && let Some(parent) = output_path.parent()
+            && !parent.exists()
+        {
+            return Err(crate::error::AstgenError::InvalidInput(format!(
+                "Output directory does not exist: {}. Create the directory first.",
+                parent.display()
+            )));
         }
 
         // Validate include/exclude patterns

@@ -1,7 +1,8 @@
 [package]
 name = "astgen"
 version = "2026.11.1"
-edition = "2021"
+edition = "2024"
+rust-version = "1.99.1"
 build = "build.rs"
 readme = "README.md"
 repository = "https://github.com/grahambrooks/astgen"

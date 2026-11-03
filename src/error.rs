@@ -26,10 +26,18 @@ impl fmt::Display for AstgenError {
             AstgenError::SerializationError(msg) => write!(f, "Output formatting error: {}", msg),
             AstgenError::ConfigError(msg) => write!(f, "Configuration error: {}", msg),
             AstgenError::FileTooLarge { path, size, limit } => {
-                write!(f, "File too large: {} ({} bytes)\nMaximum allowed size: {} bytes\nUse --max-file-size to increase the limit.", path, size, limit)
+                write!(
+                    f,
+                    "File too large: {} ({} bytes)\nMaximum allowed size: {} bytes\nUse --max-file-size to increase the limit.",
+                    path, size, limit
+                )
             }
             AstgenError::UnsupportedFileType(path) => {
-                write!(f, "Cannot determine language for file: {}\nSupported extensions: .rs, .java, .cs, .go, .py, .ts, .tsx, .js, .rb", path)
+                write!(
+                    f,
+                    "Cannot determine language for file: {}\nSupported extensions: .rs, .java, .cs, .go, .py, .ts, .tsx, .js, .rb",
+                    path
+                )
             }
         }
     }

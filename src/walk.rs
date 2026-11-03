@@ -1,4 +1,4 @@
-use crate::cli_types::{format_output, Args};
+use crate::cli_types::{Args, format_output};
 use crate::encodings;
 use crate::error::{AstgenError, Result};
 use crate::parsing;

@@ -147,13 +147,13 @@ mod tests {
         assert_eq!(json_node.end_byte, code.len());
 
         // Check that children preserve correct positions
-        if let Some(children) = &json_node.children {
-            if !children.is_empty() {
-                let first_child = &children[0];
-                assert!(first_child.start_byte < first_child.end_byte);
-                assert!(first_child.end_byte <= code.len());
-                assert!(first_child.start_byte <= code.len());
-            }
+        if let Some(children) = &json_node.children
+            && !children.is_empty()
+        {
+            let first_child = &children[0];
+            assert!(first_child.start_byte < first_child.end_byte);
+            assert!(first_child.end_byte <= code.len());
+            assert!(first_child.start_byte <= code.len());
         }
     }
 
