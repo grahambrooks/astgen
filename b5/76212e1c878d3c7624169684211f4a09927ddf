@@ -1,0 +1,33 @@
+.github/workflows/ci.yaml
+  s_3af201839d09d6::t_0bd6663284a5b7 1,3-18,21-22,26-62,64-66
+Cargo.toml
+  s_3af201839d09d6::t_d699c58049514e 4-5
+build.rs
+  s_3af201839d09d6::t_634618bcebaa09 40-60,70-72
+rust-toolchain.toml
+  s_3af201839d09d6::t_1983ff5d649804 1-4
+src/cli_types.rs
+  s_3af201839d09d6::t_8d26d0c8394231 183-190
+src/error.rs
+  s_3af201839d09d6::t_7089c084e951c2 29-33,36-40
+src/json.rs
+  s_3af201839d09d6::t_689222669eca3f 150-156
+src/walk.rs
+  s_3af201839d09d6::t_241cd8c712f9d5 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b576212e1c878d3c7624169684211f4a09927ddf",
+  "prompts": {},
+  "sessions": {
+    "s_3af201839d09d6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca62a504-f3e7-484c-9e2d-47cfc6cd0491",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Graham Brooks <graham@grahambrooks.com>"
+    }
+  }
+}
